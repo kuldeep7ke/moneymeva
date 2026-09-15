@@ -26,8 +26,8 @@ export const SITE_URL = (
 export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
 // jsonbin.io Bin IDs (broadcast & banner — edit via jsonbin.io dashboard, see docs/BROADCAST-GUIDE.md)
-export const BROADCAST_BIN_ID = _d('Ww5WXB9dVk4HWAlaBB9YAERYXlldBk5U');
-export const BANNER_BIN_ID = _d('Ww5WXB9dUEUHWAlaBB9YAERYXlldBhte');
+export const BROADCAST_BIN_ID = _d('Ww4PXRteV08ADllcVElbVUMADgpdBE8M');
+export const BANNER_BIN_ID = _d('Ww4PXRteVEcADllcVElbVUMADgpdBEkP');
 export const JSONBIN_BASE = _d('BRsaFQpXSlkAHQZADwoCCxQIA0EHClYbVlkDQg==');
 
 // Edge-cached proxy (Cloudflare Pages Function, functions/api/announcements.js).
