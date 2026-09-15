@@ -36,7 +36,6 @@
 | Cash flow chart | 6-month income vs expenses trend |
 | Spending chart | Where money goes (by category) |
 | Goals | Savings goals (e.g., emergency fund) |
-| Tasks | To-do items |
 | Recurring | Upcoming recurring transactions |
 | Reminders | Due reminders |
 | Cloud Sync card | Shows sync status + "Sync Now" when connected |
@@ -89,64 +88,56 @@ Three transaction types: **Income · Expense · Investment**.
 
 ## 5. Cloud Sync (Optional, Recommended)
 
-> Sync backs up your data to a private cloud space and keeps all your devices in sync. Requires internet. Works independently of local usage — the app always works offline.
+> Sync backs up your data to a shared cloud database and keeps all your devices in sync. Requires internet. Works independently of local usage — the app always works offline.
 
-### 5.0 Which password is which?
+### 5.0 No account needed — how it works
 
-The app has **three different passwords** — don't mix them up:
+There is **no cloud account and no cloud password**. Sync uses a **link-only** shared database (the classic CouchDB-style model): any device that connects with the same project **URL + anon key** reads and writes the same rows.
 
-| Password | Where you set it | Used for |
+| Secret | Where you get it | Used for |
 |---|---|---|
-| **App unlock password** | First launch / Onboarding | Opening the app on this device only |
-| **Cloud sync password** | Settings → Multi-Device Sync → "Create account & sync" (you choose it, min 6 characters) | Signing in to your cloud account to sync on any device |
-| **Google password** | Google account | Signing in with "Continue with Google" — the app never sees it |
+| **Supabase URL** | Settings → Multi-Device Sync (or your app provider) | Finding the cloud database |
+| **Anon key** | Settings → Multi-Device Sync (or your app provider) | Unlocking the cloud database |
+| **Google password** | Your Google account | Only the optional Google sign-in on the login screen — the app never sees it |
 
-The sync email + password are **your cloud account credentials** — a fresh account you create for Money Meva. You are not asked for (and never need) a Supabase dashboard password or your Google password. If you signed in with Google, tap **Create account & sync** with the same Google email to create the cloud account (you pick any password).
+Don't mix these up with:
 
-> **Signed in with Google?** Then you don't need the email/password fields at all — the app connects to the cloud **automatically** after Google sign-in. Settings → Multi-Device Sync will just show **Connected** (the fields stay hidden). If you ever see the fields again, you're not connected — sign in with Google or use your cloud email + password.
+- Your **app unlock PIN** — opens the app on this device only.
+- Your **local profile password** — signs you into the app on this device.
+- Your **Google password** — Google sign-in only creates a *local* profile; the app never sees the password.
 
-### 5.1 Create your cloud account (first device)
+> **Signed in with Google?** That just creates a local profile (and restores your previous local session) — it is **not** cloud sync. Connect in Settings → Multi-Device Sync with the URL + anon key to actually sync.
+
+### 5.1 First device — connect
 
 1. Open **Settings → Multi-Device Sync**.
-2. The **Supabase URL** and **anon key** are already filled in — leave them as-is (the app is pre-configured).
-3. Enter **your email** + a **new password you choose** (min 6 characters) — this becomes your cloud account.
-4. Tap **Create account & sync**.
-5. Done — your data is now backed up to the cloud.
-
-> Already signed in with Google? Use the **same Google email** and tap **Create account & sync** — you only pick the password; it links to your Google account.
+2. Paste your **Supabase URL** (e.g. `https://xxxxxxxxxxxx.supabase.co`) and the **anon key** (they may already be filled in if your app provider pre-configured the app).
+3. Tap **Connect** — your local data is pushed to the cloud.
 
 ### 5.2 Add another device
 
 1. On the second device, open **Settings → Multi-Device Sync**.
-2. Enter the **same email + password** (the cloud account you created in 5.1).
-3. Tap **Connect**.
-4. Your cloud data appears on this device. From now on, changes sync live between devices.
+2. Paste the **same URL + anon key**.
+3. Tap **Connect** — your cloud data appears on this device. From now on, changes sync live between devices.
 
-### 5.2b Link-only backup (Anonymous mode — no email/password)
-
-Want a cloud backup **without creating an account**? Tick **Anonymous mode** in
-Settings → Multi-Device Sync, then connect with just the URL + anon key. One-time
-setup is done by your app provider (see `CLOUD-SYNC-GUIDE.md`). Note this is a
-**link-only backup** for this browser — because there's nothing to sign in with,
-you can't pull the same data into a different browser/device later. For real
-cross-device sync, create an email + password cloud account instead.
+> Both devices now share the same rows. Edits on one appear on the other within seconds (realtime) or when you tap **Sync Now**.
 
 ### 5.3 Everyday sync behavior
 
 - Sync runs **automatically in the background** (live sync) while connected.
 - **Sync Now** forces an instant push + pull (useful after offline edits).
 - **Disconnect** stops syncing this device — your local data stays on the device.
-- If you change your password or log in on a new device, re-connect with the new credentials.
+- To move to a new browser/device, just connect again with the same URL + anon key.
 
 ### 5.4 Privacy of cloud data
 
-- Every account gets a **private, isolated space** enforced by the database (per-user security) — no account can read or change another account's data.
-- Your email + password **are** the protection — never share them.
-- The anon key is **public by design** (it only enables sign-up/sign-in; it cannot read any user's data).
+- **Anyone with the project URL + anon key can read and write all the data in that database.** This is the same model as the original CouchDB sync — **don't share them publicly.**
+- The anon key is public by design (it's safe to ship in app bundles); the real protection is keeping the **URL private**.
+- Your email address is **not** used for sync — nothing to reuse or leak.
 
 ### 5.5 Advanced: bring your own server
 
-- In **Settings → Multi-Device Sync** you can paste your **own Supabase URL + anon key** to use a completely different database (e.g., your own Supabase project). See `CLOUD-SYNC-GUIDE.md` for owner setup steps.
+- In **Settings → Multi-Device Sync** you can paste your **own Supabase URL + anon key** to use a completely different database (e.g., your own Supabase project). See `CLOUD-SYNC-GUIDE.md` for the full setup guide.
 
 ---
 
@@ -170,7 +161,7 @@ Import a JSON backup to restore data on a new device (alternative to cloud sync)
 - **PINs** guard app access; auto-lock after inactivity (configurable 1h–24h or off).
 - **Soft delete + Archive** (30-day retention) protects against accidental deletion.
 - **No ads, no trackers, no analytics** — your data is not sold or shared.
-- Only when **you** enable cloud sync does an encrypted-in-transit copy live on the shared cloud database, isolated per account.
+- Only when **you** enable cloud sync does an encrypted-in-transit copy live on the shared cloud database — the data is shared by design with anyone holding the URL + key, so keep them private.
 - The app has **no server of its own** — nothing to track you even when you use cloud sync.
 
 Full policy: see **Terms** and **Privacy** pages in the app (`/terms`, `/privacy`).
@@ -181,13 +172,13 @@ Full policy: see **Terms** and **Privacy** pages in the app (`/terms`, `/privacy
 
 | Problem | Fix |
 |---|---|
-| Forgot my PIN | Data is encrypted by your PIN; restore from your last **JSON backup** (Settings → Export/Import). |
-| Sync says "Connect" but I created an account before | Enter your email + password and tap **Create account & sync** again — it connects if the account exists. |
-| Sign-in says invalid credentials | Make sure you are using the account you created (same email), and the password is correct. |
-| Data missing on another device | Confirm both devices use the **same email + password**, and tap **Sync Now** on the device that has the data. |
+| Forgot my PIN | Data is protected by your local profile; restore from your last **JSON backup** (Settings → Export/Import). |
+| App asks me to log in but I only used a PIN before | Create/log into your local profile again — PIN unlocks the app, the profile holds the data. |
+| Sync says "Connect" but I synced before | Enter the **same URL + anon key** and tap **Connect**. |
+| Data missing on another device | Confirm both devices use the **same URL + anon key**, and tap **Sync Now** on the device that has the data. |
 | Syncing but nothing changes | Check internet; tap **Sync Now**; wait a few seconds for real-time events. |
 | Want to stop syncing | **Disconnect** in Settings — local data is untouched. |
-| Password / email already in use | That account already exists — just tap **Connect** with its credentials. |
+| URL/key changed and sync broke | Reconnect with the current URL + anon key from Settings → Multi-Device Sync. |
 
 ---
 
@@ -196,14 +187,14 @@ Full policy: see **Terms** and **Privacy** pages in the app (`/terms`, `/privacy
 **Q: Is an account required?**
 No. The app works fully offline without any account. Cloud sync is optional.
 
-**Q: Is my cloud data shared with other users?**
-No. Every account is isolated by the database security model (Row-Level Security). Other users literally cannot query your rows.
+**Q: Is my cloud data private?**
+It lives in a **shared link-only database** — anyone with the URL + anon key can read and write the rows (the classic CouchDB sync model). The protection is keeping the URL + key private; the anon key alone is useless without the URL.
 
 **Q: Can I use my own database?**
 Yes — paste your own Supabase URL + anon key in Settings (advanced). See `CLOUD-SYNC-GUIDE.md`.
 
 **Q: What happens if I delete the app/clear browser data?**
-Local data is removed. If cloud sync was on, reinstall → Connect → your data comes back.
+Local data is removed. If cloud sync was on, reinstall → Connect with the same URL + key → your data comes back.
 
 **Q: Which devices are supported?**
 Any modern browser (mobile/desktop), installable PWA, and the Android APK (Capacitor). iOS via browser/PWA.

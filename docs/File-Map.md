@@ -9,7 +9,7 @@
 | Route | File | Notes |
 |---|---|---|
 | `/` | `src/app/page.tsx` | Landing page |
-| `/login` | `src/app/login/page.tsx` | Auth |
+| `/login` | `src/app/login/page.tsx` | Local profiles + optional Google OAuth |
 | `/onboarding` | `src/app/onboarding/page.tsx` | First-run |
 | `/dashboard` | `src/app/dashboard/page.tsx` | Home dashboard |
 | `/dashboard/income` | `src/components/TransactionPage.tsx` | Income list |
@@ -85,9 +85,8 @@
 | `tsconfig.json` | TypeScript config |
 | `package.json` | Dependencies |
 | `AGENTS.md` | AI instructions |
-| `From-Scratch.md` | Build guide |
 | `docs/USER-GUIDE.md` | End-user manual |
-| `data/memory-capsule.md` | AI context |
+| `MEMORY-CAPSULE.md` | AI + project memory (merged capsule) |
 
 ---
 

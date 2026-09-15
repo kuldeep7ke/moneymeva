@@ -5,7 +5,7 @@
 ```bash
 npm run build              # Build web → out/
 npx cap sync android       # Sync out/ → android/
-npm run android:apk        # Full build + APK
+npm run android:apk        # Full build + version bump + APK
 ```
 
 ## Config
@@ -28,10 +28,10 @@ gradle assembleDebug
   → android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-## GitHub Actions
+## GitHub Actions (`.github/workflows/build-apk.yml`)
 
-- Auto-build on push to master
-- APK in Actions artifacts
+- Auto-builds on push to master
+- Debug APK published as a workflow artifact for download
 
 ## Local Build
 

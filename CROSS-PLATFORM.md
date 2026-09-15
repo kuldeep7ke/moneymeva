@@ -195,10 +195,10 @@ Requires Docker Desktop or `docker-ce` installed.
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| "Google sign-in not enabled" | Provider not configured in Supabase | See SELF-HOSTING.md Step 4 |
-| `redirect_uri_mismatch` | Redirect URI typo | Must be exactly `https://<ref>.supabase.co/auth/v1/callback` |
-| Login works but nothing syncs | `.env.local` missing or table not created | Re-run schema.sql, confirm `.env.local`, check Settings → Sync |
-| `new row violates RLS policy` | Wrong key or schema not applied | Re-run `schema.sql`; use the **anon** key only |
+| "Google sign-in not enabled" | OAuth provider not configured in Supabase | See SELF-HOSTING.md Step 4 (only needed for the Google option on the login screen — sync itself needs no provider) |
+| `redirect_uri_mismatch` | Redirect URI typo | Must match your `NEXT_PUBLIC_SITE_URL` — see SELF-HOSTING.md Step 4 |
+| Login works (incl. Google) but nothing syncs | Cloud sync not connected | Sync is link-only and separate from login: paste the Supabase URL + anon key in Settings → Multi-Device Sync → Connect |
+| `new row violates RLS policy` | Old per-user schema still applied | Re-run `supabase/schema.sql` (idempotent migration to open link-only RLS); use the **anon** key only |
 | Sync stops after laptop sleep | Socket dropped | Auto-reconnects within ~30s, or tap Sync Now |
 
 ---

@@ -126,11 +126,12 @@ export async function onRequestGet(context) {
 
 > **Money Meva reference (how this app actually runs it):**
 > - The same `functions/api/announcements.js` is deployed to **both** Cloudflare
->   Pages projects — `moneymevaonline` and `moneymeva` — by
->   `.github/workflows/deploy-cloudflare.yml` (it runs
->   `wrangler pages deploy out`, which bundles `functions/`, and auto-creates the
->   project with `pages project create ... || true` if missing). No per-project
->   config is needed.
+>   Pages projects — `moneymevaonline` and `moneymeva` — by Cloudflare's native
+>   **GitHub integration** (point each Pages project at the repo; it builds on
+>   every push to master and serves `functions/` automatically). There is **no**
+>   `.github/workflows/deploy-cloudflare.yml` — the repo has only three workflows
+>   (`build-apk`, `deploy-gh-pages`, `publish-package`), and Cloudflare is handled
+>   by the native integration.
 > - **No dashboard environment variables are required.** `FALLBACK_IDS` in the
 >   function carries the bin IDs server-side; `BROADCAST_BIN_ID` /
 >   `BANNER_BIN_ID` are optional overrides.

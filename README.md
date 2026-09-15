@@ -3,7 +3,7 @@
 > *Where does the money go? Let's find out.*
 > > **पैसे कुठे जातात? शोधूया.**
 
-**v7.3.0.38** — A minimalistic, local-first personal finance companion.
+**v7.3.0.41** — A minimalistic, local-first personal finance companion.
 Built with Next.js 16, TypeScript, Dexie.js, PouchDB, Supabase, and Tailwind CSS v4.
 Made in India. Runs on Windows, Mac, Linux, Docker, and Android.
 
@@ -57,13 +57,13 @@ Money Meva was built around a single belief: **financial clarity should not requ
 
 ### Security & Privacy
 - **PIN Security** — 10 one-time 4-digit PINs for sensitive operations (delete, edit, archive, export/import, clear data). Session auto-lock (1h–24h).
-- **Password + PIN** — Email/password auth locally. Optional PIN gate on the account page for password changes and data clearing.
+- **Local profiles** — Email/password or Google OAuth. Google sign-in creates a local profile (no Supabase account) and restores the previous local session when available. Optional PIN gate on the account page for password changes and data clearing.
 - **Activity Log** — Tracks 200 most recent security and CRUD events with color-coded timeline in Settings.
 - **100% local-first** — no cookies, analytics, or tracking services. No external data transmission unless you explicitly export or enable sync.
 
 ### Multi-Device Sync (Supabase)
 - **PouchDB + Supabase** — a local PouchDB buffer (`mm_pouch`) syncs to a shared Supabase `sync_docs` table. Manual + live (realtime) sync. Data is stored on the cloud — it doubles as a backup.
-- **Every section syncs** — all 10 data entities (transactions, partners, recurring, budgets, reminders, adjustments, goals, works, partnerships, partnership_entries) plus the audit trail (mutation_log) push through one doc store (`entity:id` rows). UI preferences stay on-device.
+- **Every section syncs** — all entity types (transactions, partners, recurring, budgets, reminders, adjustments, goals, works, partnerships, partnership_entries), the PIN batch, and the audit trail (mutation_log) push through one doc store (`entity:id` rows). UI preferences stay on-device.
 - **Link-only (no accounts)** — every device with the same project URL + anon key reads and writes the **same rows**. No email/password, no Google sign-in, no anonymous accounts. Same model as the original CouchDB sync.
 - **Setup** — owner creates a Supabase project, runs `supabase/schema.sql` once (shared table + open RLS), then shares the project URL + anon key with devices. Users paste them in Settings → Multi-Device Sync → Connect.
 - **Live sync** — realtime subscription pushes remote changes into the local buffer within seconds; a 30-second reconnect timer handles drops.
@@ -100,7 +100,7 @@ Money Meva was built around a single belief: **financial clarity should not requ
 | PDF | jsPDF 4 + jspdf-autotable |
 | Excel | SheetJS (xlsx) |
 | Dates | date-fns 4 |
-| Auth | Local (email/password) for app; Supabase anon key for cloud sync |
+| Auth | Local profiles (email/password or Google OAuth → local profile) for app; Supabase anon key for cloud sync |
 | Mobile | Capacitor 8 (Android) — app, browser, filesystem, share, local-notifications, status-bar |
 | Linting | ESLint 9 |
 
@@ -248,7 +248,7 @@ src/
 │       └── button.tsx           # Reusable button component
 ├── lib/                         # Core logic
 │   ├── store.ts                 # Data layer (cache + Dexie + sync + CRUD)
-│   ├── pouchdb.ts               # Cloud sync: Supabase Auth + sync_docs + local PouchDB buffer
+│   ├── pouchdb.ts               # Cloud sync: Supabase (link-only URL + anon key) + sync_docs + local PouchDB buffer
 │   ├── db.ts                    # Dexie schema (tables, indexes)
 │   ├── localAuth.ts             # Email/password auth (local)
 │   ├── pinStore.ts              # PIN generation and validation

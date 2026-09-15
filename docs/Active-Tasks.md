@@ -1,42 +1,45 @@
 # 📋 Active Tasks
 
 > Current work in progress. Move completed items to [[Changelog]].
+> Source of truth for app facts: root [`MEMORY-CAPSULE.md`](../MEMORY-CAPSULE.md).
 
 ---
 
 ## In Progress
 
-- [ ] Publish moneymeva-online (new repo: Supabase cloud sync) — docs + README updated
-- [ ] User guide polish (docs/USER-GUIDE.md)
+- [ ] **Docs/maintenance pass (v7.3.0.41)** — align all docs to the current state
+      (link-only sync, 11 tables, Google OAuth = local profile, announcements
+      proxy). Ref `MEMORY-CAPSULE.md` for facts; audit links/wikilinks; commit.
+- [ ] Sync-link docs — single source of truth for the link-only model is live;
+      no further sync code changes planned.
 
 ## Up Next
 
-- [ ] Decide: keep shared Supabase as default vs "bring your own Supabase" primary flow
-- [ ] Wire CI build env (URL + anon key as GitHub secrets) for future APK/web builds
-- [ ] PWA offline improvements
+- [ ] PWA offline improvements (caching refinements on top of the static export)
+- [ ] Recurring reminders via notifications
+- [ ] Push notifications for due reminders (web/APK)
 
 ## Backlog
 
-- [ ] Investment portfolio tracking
+- [ ] Investment portfolio tracking (calculator done; full portfolio next)
 - [ ] Multi-currency support
-- [ ] Recurring reminders via notifications
-- [ ] Skeleton loading for remaining pages
-- [ ] Empty state polish pass
+- [ ] Recurring reminder notifications (device-level)
 
 ---
 
 ## Done (recent)
 
-- [x] **Cloud sync migrated CouchDB → Supabase** (v7.1.1.34+)
-  - `sync_docs` table + RLS + realtime in `supabase/schema.sql`
-  - `pouchdb.ts`: `signUpUser`, `connectRemote(url, key, email, password)`, user-scoped push (`onConflict user_id,id`), realtime subscription, 30s reconnect
-  - Settings: URL + anon key auto-filled from env, email/password inputs, "Create account & sync" / "Connect"
-  - Multi-user isolation verified E2E (alice/bob): no cross-account reads, writes blocked by RLS
+- [x] **Docs + memory consolidation (v7.3.0.41)** — merged root
+      `MEMORY-CAPSULE.md` (replaces `CLAUDE.md` / `From-Scratch.md` /
+      `data/memory-capsule.md`); rewrote stale docs to the link-only model.
+- [x] **Cloud sync migrated to link-only shared database (v7.3.0.33+)**
+  - Removed email/password cloud accounts, `signUpUser`, per-user RLS
+  - `sync_docs` single-column PK `id` + open RLS + realtime in `supabase/schema.sql`
+  - Settings: URL + anon key fields, "Connect" only — "Create account & sync" gone
   - Old CouchDB/Railway URL decommissioned (Railway instance dead)
-  - New GitHub repo `moneymeva-online` (private), old `moneymeva` untouched at `dc965eb`
+  - Google OAuth retained (login screen) but now creates a **local** profile only
 - [x] Global toast system (v7.1.1.28)
-- [x] Skeleton component library
-- [x] Ledger skeleton loading
+- [x] Skeleton component library + ledger skeleton loading
 - [x] 12 empty state upgrades
 - [x] Alert → toast migration (6 calls)
 - [x] Social media OG image

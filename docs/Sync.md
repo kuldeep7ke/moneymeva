@@ -41,8 +41,10 @@ app writes through `syncWriteDoc()` / `putDoc()`:
 | `partnership_entry` | Partnership income/expense entries |
 | `pin` | PIN batch — single `pin:batch` doc |
 
-**Local-only by design:** `mutation_log` Dexie table (per-device audit trail) and
-localStorage preferences (language, theme, quotas, dismissed notices, seen-release).
+**Syncs too:** the `mutation_log` Dexie table (audit trail) is a per-device offline
+buffer that also pushes as `audit:*` docs when cloud sync is on, so the audit trail
+spans devices. **Local-only by design:** localStorage preferences (language, theme,
+quotas, dismissed notices, seen-release).
 Soft deletes push the full row; permanent deletes push an `{ id, deletedAt }` tombstone.
 
 ## Connection
