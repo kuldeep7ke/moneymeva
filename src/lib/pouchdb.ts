@@ -162,18 +162,6 @@ export async function getCurrentUserId(): Promise<string | null> {
   } catch { return null; }
 }
 
-export async function signUpUser(url: string, key: string, email: string, password: string): Promise<{ ok: boolean; needsConfirmation?: boolean; error?: string }> {
-  try {
-    const client = createClient(cleanSupabaseUrl(url), key.trim());
-    const { data, error } = await client.auth.signUp({ email, password });
-    if (error) return { ok: false, error: error.message };
-    const needsConfirmation = !data.session;
-    return { ok: true, needsConfirmation };
-  } catch (e: any) {
-    return { ok: false, error: e?.message || String(e || 'Sign up failed') };
-  }
-}
-
 // ─── Google OAuth ──────────────────────────────────────────────
 
 export async function signInWithGoogle(): Promise<{ ok: boolean; error?: string; url?: string }> {

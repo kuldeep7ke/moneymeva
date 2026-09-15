@@ -105,8 +105,8 @@ export default function SettingsPage() {
     if (cfg.url) {
       setSyncUrl(cfg.url);
       setSyncKey(cfg.key);
-      // Restore a live connection if a cloud session exists (e.g. signed in via Google),
-      // so the panel reflects Connected instead of showing "Create account & sync".
+      // Restore a live connection if a URL is configured, so the panel reflects
+      // Connected instead of showing the setup note.
       checkConnection().then(async ok => {
         if (!ok) {
           await ensureConnected();
@@ -685,7 +685,7 @@ export default function SettingsPage() {
         <Reveal delay={300}>
           <div className="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-2xl p-4 space-y-2">
             <p className="text-xs text-sky-700 dark:text-sky-400 leading-relaxed">
-              Enter the same Supabase project URL, anon key, and your email + password on each device to sync all your data across devices. Each account gets its own private data space. First time here? Tap <strong>Create account &amp; sync</strong> — you pick the email + password (min 6 characters); that is your cloud account. Prefer no login? Tick <strong>Anonymous mode</strong> to connect with just URL + anon key (link-only backup; Anonymous sign-ins must be enabled in the Supabase dashboard). Run <code className="font-mono">supabase/schema.sql</code> in your project&apos;s SQL Editor once before connecting. Data syncs in real-time once connected.
+              Enter the same Supabase project URL and anon key on each device — every device that connects shares the <strong>same</strong> data (CouchDB-style sync, no accounts). No email/password or sign-in needed. For a brand-new project, run <code className="font-mono">supabase/schema.sql</code> in your project&apos;s SQL Editor once before connecting. Data syncs in real-time once connected.
             </p>
           </div>
         </Reveal>
