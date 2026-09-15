@@ -1,8 +1,8 @@
 # Money Meva — Memory Capsule
 
 **Version:** v7.3.0.38 (incremented on every build)
-**Repository:** github.com/kuldeep7ke/moneymeva-online (private, Supabase sync)
-**Legacy repository:** github.com/kuldeep7ke/moneymeva (frozen at `dc965eb`, pure CouchDB — do not build from it)
+**Repository:** github.com/kuldeep7ke/moneymeva (private, Supabase sync)
+**Legacy repository:** the pre-rewrite CouchDB repo (frozen at `dc965eb`) no longer exists under its old name — this repo was renamed from `moneymeva-online` to `moneymeva`
 **Deployment:** Cloudflare Pages (auto-deploy on push to master)
 **Android:** Capacitor APK via GitHub Actions (auto-build on push)
 **Remote announcements:** jsonbin.io bins (broadcast + banner) — see `docs/BROADCAST-GUIDE.md`
@@ -75,7 +75,7 @@ Categories are kept **separate** per transaction type — `mm_income_categories`
 
 ### 8. Remote Announcements (jsonbin.io + edge cache)
 Broadcast pills + banner modals are **remote-config**: JSON hosted on jsonbin.io, fetched through the site's own edge-cached proxy. Works in web AND installed APKs without app updates.
-- **Bins**: broadcast `6a89f038f5f4af5e29363c79` (array of pill objects), banner `6a89f053f5f4af5e29363cb3` (single object)
+- **Bins**: broadcast `6aa8b329ac6210605ace3a6a` (array of pill objects), banner `6aa8b311ac6210605ace3a0b` (single object)
 - **Quota protection (v7.1.1.93+)**: apps fetch `https://moneymevaonline.pages.dev/api/announcements?type=broadcast|banner` — a Cloudflare Pages Function (`functions/api/announcements.js`, plain JS so Next tsc ignores it) that fetches jsonbin as origin and edge-caches via Cache API + `Cache-Control`. Cache window = `TTL_MINUTES` (currently **10**, since v7.1.1.95). jsonbin volume is time-bound, not user-bound: ~6×/hour/bin ≈ 290/day combined ≈ 8.6k/month worst case (per Cloudflare POP) — near the 10k free cap; docs recommend raising to 20–30 min if quota warnings appear. Edits propagate in ≤10 min
 - **Fallback chain**: proxy fail → direct jsonbin `?t=${Date.now()}` + `cache: 'no-store'` (Bin IDs stay in env.ts for this) — announcements never go dark
 - **Wiring**: Bin IDs + URLs stored as XOR+base64 obfuscated constants in `src/lib/env.ts` (`BROADCAST_BIN_ID`/`BANNER_BIN_ID`/`JSONBIN_BASE`/`ANNOUNCEMENTS_API`, runtime `_d()` decoder) — invisible to bundle extraction; verified zero plain-text occurrences in `out/`. Function has its own hardcoded bin IDs (overridable via Pages env vars `BROADCAST_BIN_ID`/`BANNER_BIN_ID`)

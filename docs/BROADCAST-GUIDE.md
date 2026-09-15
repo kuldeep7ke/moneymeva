@@ -21,8 +21,8 @@ You edit JSON on jsonbin.io  →  Cloudflare edge caches it (10 min)  →  apps 
 
 | Content | Bin ID | API URL |
 |---|---|---|
-| Broadcast pills | `6a89f038f5f4af5e29363c79` | https://api.jsonbin.io/v3/b/6a89f038f5f4af5e29363c79/latest |
-| Banner modal | `6a89f053f5f4af5e29363cb3` | https://api.jsonbin.io/v3/b/6a89f053f5f4af5e29363cb3/latest |
+| Broadcast pills | `6aa8b329ac6210605ace3a6a` | https://api.jsonbin.io/v3/b/6aa8b329ac6210605ace3a6a/latest |
+| Banner modal | `6aa8b311ac6210605ace3a0b` | https://api.jsonbin.io/v3/b/6aa8b311ac6210605ace3a0b/latest |
 
 Dashboard: https://jsonbin.io → **Bins** → click a bin → edit → **Save (Ctrl+S)**
 
@@ -45,7 +45,7 @@ Small floating notification centered at the top of the screen. Does NOT block co
     "type": "info",
     "pinned": false,
     "expires": "2026-09-30",
-    "link": "https://github.com/kuldeep7ke/moneymeva-online/releases"
+    "link": "https://github.com/kuldeep7ke/moneymeva/releases"
   }
 ]
 ```
@@ -84,7 +84,7 @@ Full-screen overlay popup, centered card. Blocks content until dismissed (X appe
   "title": "Money Meva v7.1.2 is Live!",
   "content": "Track your income, expenses, and investments — all offline-first.",
   "image": "https://placehold.co/800x400/FF8A3D/FFFFFF?text=Money+Meva+v7.1.2",
-  "href": "https://github.com/kuldeep7ke/moneymeva-online/releases",
+  "href": "https://github.com/kuldeep7ke/moneymeva/releases",
   "width": "max-w-xl",
   "startDate": "2026-08-19",
   "expires": "2026-09-19"

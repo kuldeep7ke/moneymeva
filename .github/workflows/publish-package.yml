@@ -13,7 +13,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: kuldeep7ke/moneymeva-online
+  IMAGE_NAME: kuldeep7ke/moneymeva
 
 jobs:
   publish:

@@ -255,8 +255,8 @@ Sync path:   PouchDB ↔ Supabase (bidirectional, realtime + manual)
 - **Audit trail sync** — mutation_log now syncs across devices via PouchDB
 - **Audit trail in backups** — JSON export/import includes full audit + activity log
 - **Calendar month filter** — Accounts page uses proper month picker (not rolling window)
-- **GitHub Pages hosting** — static export deployed at `/moneymeva-online`
-  (`https://kuldeep7ke.github.io/moneymeva-online/`)
+- **GitHub Pages hosting** — static export deployed at `/moneymeva`
+  (`https://kuldeep7ke.github.io/moneymeva/`); base path is auto-derived from the repo name
 - **Cloudflare Pages hosting** — Cloudflare project `moneymevaonline`
   (`https://moneymevaonline.pages.dev`); its workflow is gated on
   `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` repo secrets, which are unset, so

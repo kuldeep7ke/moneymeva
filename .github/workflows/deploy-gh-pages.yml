@@ -1,4 +1,5 @@
-# Deploy static export to GitHub Pages at /moneymeva-online.
+# Deploy static export to GitHub Pages. The base path is derived from the repo
+# name (GITHUB_REPOSITORY) in next.config.ts, so it serves at /<repo-name>/.
 # Requires Pages source = "GitHub Actions" (set once in repo Settings → Pages).
 # Optional repo variables/secrets for cloud features:
 #   NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY / NEXT_PUBLIC_SITE_URL

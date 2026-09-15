@@ -15,7 +15,7 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
 RUN npx next build
 
 FROM nginx:1.27-alpine
-LABEL org.opencontainers.image.source=https://github.com/kuldeep7ke/moneymeva-online
+LABEL org.opencontainers.image.source=https://github.com/kuldeep7ke/moneymeva
 LABEL org.opencontainers.image.description="Money Meva — local-first personal finance app (static web build)"
 COPY --from=build /app/out /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf

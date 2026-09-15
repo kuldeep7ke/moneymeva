@@ -17,8 +17,8 @@ This guide covers running Money Meva on **Windows**, **macOS**, and **Linux** (U
 ## Quick Start
 
 ```bash
-git clone https://github.com/kuldeep7ke/moneymeva-online.git
-cd moneymeva-online
+git clone https://github.com/kuldeep7ke/moneymeva.git
+cd moneymeva
 npm install
 ```
 
@@ -62,8 +62,8 @@ node -v   # v18.x+
 npm -v    # 9.x+
 
 # Clone and run
-git clone https://github.com/kuldeep7ke/moneymeva-online.git
-cd moneymeva-online
+git clone https://github.com/kuldeep7ke/moneymeva.git
+cd moneymeva
 chmod +x start.sh start-dev.sh stop-server.sh
 ./start.sh
 ```
@@ -78,8 +78,8 @@ curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
 sudo dnf install -y nodejs
 
 # Clone and run
-git clone https://github.com/kuldeep7ke/moneymeva-online.git
-cd moneymeva-online
+git clone https://github.com/kuldeep7ke/moneymeva.git
+cd moneymeva
 chmod +x start.sh start-dev.sh stop-server.sh
 ./start.sh
 ```
@@ -88,8 +88,8 @@ chmod +x start.sh start-dev.sh stop-server.sh
 
 ```bash
 sudo pacman -S nodejs npm
-git clone https://github.com/kuldeep7ke/moneymeva-online.git
-cd moneymeva-online
+git clone https://github.com/kuldeep7ke/moneymeva.git
+cd moneymeva
 chmod +x start.sh start-dev.sh stop-server.sh
 ./start.sh
 ```
@@ -109,8 +109,8 @@ brew install node@18
 # Or download from https://nodejs.org
 
 # Clone and run
-git clone https://github.com/kuldeep7ke/moneymeva-online.git
-cd moneymeva-online
+git clone https://github.com/kuldeep7ke/moneymeva.git
+cd moneymeva
 chmod +x start.sh start-dev.sh stop-server.sh
 ./start.sh
 ```
@@ -121,7 +121,7 @@ chmod +x start.sh start-dev.sh stop-server.sh
 
 ```bash
 # Run the prebuilt image (cloud-free by default)
-docker run -d -p 8080:80 ghcr.io/kuldeep7ke/moneymeva-online:latest
+docker run -d -p 8080:80 ghcr.io/kuldeep7ke/moneymeva:latest
 # Open http://localhost:8080
 
 # Or build with your own Supabase values

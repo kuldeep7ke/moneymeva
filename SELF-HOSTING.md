@@ -49,8 +49,8 @@ Your device                    Your Supabase project
 ## Step 1 — Run the app offline (no cloud needed)
 
 ```bash
-git clone https://github.com/kuldeep7ke/moneymeva-online.git
-cd moneymeva-online
+git clone https://github.com/kuldeep7ke/moneymeva.git
+cd moneymeva
 npm install
 npm run build        # static export → out/
 npx serve out        # or ./start.sh (Mac/Linux) / start.bat (Windows)
@@ -171,7 +171,7 @@ another deployment's variables (and nobody can touch yours).
 ### GitHub Pages
 
 The repo ships a ready-made workflow (`.github/workflows/deploy-gh-pages.yml`)
-that publishes your copy to `https://<your-username>.github.io/moneymeva-online/`:
+that publishes your copy to `https://<your-username>.github.io/<repo-name>/`:
 
 1. Fork/push the repo, then open **Settings → Pages → Build and deployment →
    Source** and select **GitHub Actions** (the workflow deploys automatically on
@@ -179,10 +179,10 @@ that publishes your copy to `https://<your-username>.github.io/moneymeva-online/
 2. Optional — for Google sign-in/sync on your copy, add repo variables/secrets
    (**Settings → Secrets and variables → Actions**):
    - Secret `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (your project's values from Step 5)
-   - Variable `NEXT_PUBLIC_SITE_URL` = `https://<your-username>.github.io/moneymeva-online`
+   - Variable `NEXT_PUBLIC_SITE_URL` = `https://<your-username>.github.io/<repo-name>`
 3. Re-run the workflow after adding them (build-time injection), then in Supabase
    → Authentication → URL Configuration add:
-   - Redirect URL: `https://<your-username>.github.io/moneymeva-online/**`
+   - Redirect URL: `https://<your-username>.github.io/<repo-name>/**`
 
 Notes:
 
@@ -207,7 +207,7 @@ A ready-to-run image of the web app is published to GitHub Packages on every
 version tag (workflow: `.github/workflows/publish-package.yml`):
 
 ```bash
-docker run -d -p 8080:80 ghcr.io/kuldeep7ke/moneymeva-online:latest
+docker run -d -p 8080:80 ghcr.io/kuldeep7ke/moneymeva:latest
 # open http://localhost:8080 — cloud-free build by default
 ```
 
