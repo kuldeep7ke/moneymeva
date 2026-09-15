@@ -1,6 +1,8 @@
 # Deploy static export to Cloudflare Pages — moneymevaonline AND moneymeva.
 # Requires repo secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
 # Until the secrets exist, this workflow is skipped (no-op).
+# Both projects must already exist in the account (the token is scoped to
+# them, so project creation is NOT performed here).
 # No Supabase keys are baked into the build — users bring their own URL/key
 # in-app (Settings → Sync).
 name: Deploy to Cloudflare Pages
@@ -43,36 +45,36 @@ jobs:
         if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
         run: npm run build
 
-      - name: Create Pages project moneymevaonline (if missing)
+      - name: Install Wrangler
         if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
-        continue-on-error: true
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project create moneymevaonline --production-branch master
-
-      - name: Create Pages project moneymeva (if missing)
-        if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
-        continue-on-error: true
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages project create moneymeva --production-branch master
+        run: npm i --no-save wrangler@^3
 
       - name: Deploy to Cloudflare Pages (moneymevaonline)
         if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy out --project-name=moneymevaonline --branch master
+        run: |
+          set -e
+          for attempt in 1 2 3 4 5 6; do
+            if npx --no-install wrangler pages deploy out --project-name=moneymevaonline --branch master; then
+              echo "moneymevaonline deployed"
+              exit 0
+            fi
+            echo "moneymevaonline deploy attempt $attempt failed (likely rate-limited); sleeping 30s..."
+            sleep 30
+          done
+          echo "moneymevaonline deploy failed after 6 attempts" >&2
+          exit 1
 
       - name: Deploy to Cloudflare Pages (moneymeva)
         if: ${{ env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != '' }}
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy out --project-name=moneymeva --branch master
+        run: |
+          set -e
+          for attempt in 1 2 3 4 5 6; do
+            if npx --no-install wrangler pages deploy out --project-name=moneymeva --branch master; then
+              echo "moneymeva deployed"
+              exit 0
+            fi
+            echo "moneymeva deploy attempt $attempt failed (likely rate-limited); sleeping 30s..."
+            sleep 30
+          done
+          echo "moneymeva deploy failed after 6 attempts" >&2
+          exit 1
