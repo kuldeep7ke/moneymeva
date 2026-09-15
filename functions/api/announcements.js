@@ -11,7 +11,8 @@ const FALLBACK_IDS = {
 };
 // How long each response is cached at Cloudflare's edge (in MINUTES).
 // Lower = users see jsonbin edits sooner (but jsonbin gets more requests). Higher = fewer requests.
-const TTL_MINUTES = 10;
+// 180 = 3 hours: ~8 jsonbin requests/day/bin (≈240/month, far under the 10k free cap).
+const TTL_MINUTES = 180;
 const TTL_SECONDS = TTL_MINUTES * 60;
 
 export async function onRequestGet(context) {

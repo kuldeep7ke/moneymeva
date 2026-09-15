@@ -614,13 +614,13 @@ All exports funnel through `downloadBlob()` in `src/lib/download.ts`:
 | Weekend backup | Saturday/Sunday (once per day) | warning |
 
 ### Remote Announcements (jsonbin.io + edge cache)
-Broadcast pills and banner modals are remote-config — owner edits JSON on jsonbin.io, all users (web + installed APKs) get changes within ~10 min, no app updates.
+Broadcast pills and banner modals are remote-config — owner edits JSON on jsonbin.io, all users (web + installed APKs) get changes within up to ~3 hours, no app updates.
 
 ```
 jsonbin.io bins ──origin fetch──> functions/api/announcements.js (Cloudflare Pages Function, 10-min edge cache) ──/api/announcements?type=…──> BroadcastBanner.tsx / BannerModal.tsx
 ```
 
-- **Quota protection**: every device hits the site's own `/api/announcements` endpoint; the Pages Function edge-caches responses for `TTL_MINUTES` (currently 10), so jsonbin is fetched at most ~6×/hour/bin regardless of user count (~290/day combined ≈ 8.6k/month worst case — near the 10k free cap; raise `TTL_MINUTES` to 20–30 if quota warnings appear). Bin IDs live server-side in the Function (optional Pages env vars override hardcoded fallbacks)
+- **Quota protection**: every device hits the site's own `/api/announcements` endpoint; the Pages Function edge-caches responses for `TTL_MINUTES` (currently 180 = 3 hours), so jsonbin is fetched at most ~8×/day/bin regardless of user count (~16/day combined ≈ 480/month worst case — far under the 10k free cap, with headroom to lower TTL if faster edits are wanted). Bin IDs live server-side in the Function (optional Pages env vars override hardcoded fallbacks)
 - **Config** (`src/lib/env.ts`): `BROADCAST_BIN_ID` / `BANNER_BIN_ID` / `JSONBIN_BASE` / `ANNOUNCEMENTS_API` stored as XOR+base64 obfuscated strings (`_K` = 'moneymeva', decoded at runtime via `_d()`) — no plain-text IDs or URLs in shipped bundles
 - **Fetch**: proxy first (`ANNOUNCEMENTS_API?type=broadcast|banner`, default HTTP caching), then direct jsonbin fallback (`?t=${Date.now()}` + `cache: 'no-store'`) if the proxy fails; unwrap response via `res?.record ?? res`
 - **Broadcast pill**: floating pills top-center over the **content area** — fixed wrapper centers via `fixed left-1/2 md:left-[calc(50%+8rem)] -translate-x-1/2 z-[9998]` (`md:` offset = half the `w-64` sidebar, so desktop pills sit over content, not the sidebar), stacked 44px apart via inline `top: 8 + i*44`. The **pill itself carries NO positioning** — only the swipe-to-dismiss `transform: translateX(dragX)` — so centering and drag motion can never conflict. Color-coded by `type`, optional clickable `link`, per-ID dismissal (`mm_dismissed_broadcasts`), `pinned` = no dismiss, swipe-left ≥70px dismisses; JSON is an array of objects; fetched list cached at module level (no refetch on navigation)
@@ -926,7 +926,7 @@ money-meva/
 │   └── favicon-32.png
 ├── functions/
 │   └── api/
-│       └── announcements.js     # Cloudflare Pages Function — edge-cached (TTL_MINUTES = 10) proxy for jsonbin bins; serves /api/announcements?type=broadcast|banner
+│       └── announcements.js     # Cloudflare Pages Function — edge-cached (TTL_MINUTES = 180) proxy for jsonbin bins; serves /api/announcements?type=broadcast|banner
 ├── scripts/
 │   ├── bump-version.cjs        # Version increment
 │   ├── update-android-version.cjs

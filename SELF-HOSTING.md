@@ -180,6 +180,10 @@ that publishes your copy to `https://<your-username>.github.io/<repo-name>/`:
    (**Settings → Secrets and variables → Actions**):
    - Secret `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (your project's values from Step 5)
    - Variable `NEXT_PUBLIC_SITE_URL` = `https://<your-username>.github.io/<repo-name>`
+   - Variable `NEXT_PUBLIC_ANNOUNCEMENTS_API` — optional; **leave unset** to keep
+     announcements served through the shared Cloudflare edge-cached proxy (see
+     `docs/ANNOUNCEMENTS-EDGE-PROXY-GUIDE.md`). `SITE_URL` no longer affects where
+     announcements come from.
 3. Re-run the workflow after adding them (build-time injection), then in Supabase
    → Authentication → URL Configuration add:
    - Redirect URL: `https://<your-username>.github.io/<repo-name>/**`
@@ -195,6 +199,9 @@ Notes (all hosts):
 - Env vars are injected at **build time** — after changing them, trigger
   **Retry deployment** / redeploy.
 - Netlify/Vercel work identically: same build command, output dir, three variables.
+- Broadcasts/banner always load from the shared Cloudflare edge-cached proxy by
+  default on every host (web and Android APK) — no extra configuration needed to
+  keep notifications working on a cloud-free copy.
 - Skip the variables and your deployment builds **cloud-free**: fully offline app,
   no Google sign-in/sync — exactly as designed.
 - The original author's live deployment (`moneymevaonline.pages.dev`) uses the

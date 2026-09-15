@@ -175,6 +175,8 @@ npm run android:apk         # Full build → version → gradle assembleDebug
 | `src/components/CloudSetupWizard.tsx` | Cloud sync setup wizard (auto-checking 4 steps) |
 | `scripts/serve.cjs` | Cross-platform static file server for out/ |
 | `SELF-HOSTING.md` | Self-host guide: own Supabase project via `.env.local` overrides (NEXT_PUBLIC_SUPABASE_URL/ANON_KEY/SITE_URL), Google OAuth setup, multi-device sync |
-| `src/lib/env.ts` | Runtime config: Supabase URL/key EMPTY by default (bring-your-own via NEXT_PUBLIC_* env vars or Settings → Sync), SITE_URL, jsonbin bin IDs |
+| `src/lib/env.ts` | Runtime config: Supabase URL/key EMPTY by default (bring-your-own via NEXT_PUBLIC_* env vars or Settings → Sync), SITE_URL, jsonbin bin IDs, `ANNOUNCEMENTS_API` (edge-cached proxy URL, decoupled from SITE_URL) |
+| `functions/api/announcements.js` | Cloudflare Pages Function: edge-cached jsonbin proxy (TTL 3 h / `TTL_MINUTES = 180`), serves every platform incl. Android APK |
+| `docs/ANNOUNCEMENTS-EDGE-PROXY-GUIDE.md` | Reusable jsonbin quota-proxy playbook: how the app + each platform consumes it, setup + reuse checklist for other apps |
 | `.github/workflows/deploy-gh-pages.yml` | GitHub Pages deploy: builds with `DEPLOY_TARGET=gh-pages` → basePath auto-derived from `GITHUB_REPOSITORY` (`/moneymeva`) in next.config.ts; override with `GH_PAGES_BASE_PATH`; Pages source must be "GitHub Actions" |
 | `Dockerfile` + `.github/workflows/publish-package.yml` | Docker image of static app published to `ghcr.io/kuldeep7ke/moneymeva` on v* tags; nginx serves out/ with clean URLs (nginx.conf) |

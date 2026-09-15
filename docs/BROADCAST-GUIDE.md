@@ -8,10 +8,10 @@ Send messages and banners to ALL Money Meva users (web + Android APK) by editing
 ## How It Works
 
 ```
-You edit JSON on jsonbin.io  →  Cloudflare edge caches it (10 min)  →  apps fetch your own /api endpoint  →  pill/banner renders
+You edit JSON on jsonbin.io  →  Cloudflare edge caches it (3 h)  →  apps fetch your own /api endpoint  →  pill/banner renders
 ```
 
-- Apps fetch from the site's own `/api/announcements` endpoint — a Cloudflare Pages Function that edge-caches responses for `TTL_MINUTES` (currently 10), so jsonbin request volume depends on time only, never on user count (protects the free quota)
+- Apps fetch from the site's own `/api/announcements` endpoint — a Cloudflare Pages Function that edge-caches responses for `TTL_MINUTES` (currently 180 = 3 hours), so jsonbin request volume depends on time only, never on user count (protects the free quota)
 - Works everywhere the app runs — web AND the Android APK (no app-store update required)
 - Local `public/broadcast.json` / `public/banner.json` are legacy fallbacks only — jsonbin.io is now the source of truth
 
@@ -154,8 +154,8 @@ Common edits:
 
 ## Technical Notes
 
-- **Fetch path (quota protection)**: app → `https://moneymevaonline.pages.dev/api/announcements?type=broadcast|banner` → Cloudflare Pages Function (`functions/api/announcements.js`) → jsonbin. The Function edge-caches responses (`Cache-Control` + Cache API) for `TTL_MINUTES` — currently **10 minutes** — so ALL devices share cached copies and jsonbin is fetched at most ~6×/hour/bin (~290 requests/day combined, ~8.6k/month worst case) no matter how many users you have
-- **Propagation delay**: edits on jsonbin reach users within ~10 min worst case (edge TTL). Need faster or slower? Change `TTL_MINUTES` in `functions/api/announcements.js` and push. Note: below ~15 min the monthly request count approaches the 10k free-tier cap — if you ever see quota warnings, raise it to 20–30
+- **Fetch path (quota protection)**: app → `https://moneymevaonline.pages.dev/api/announcements?type=broadcast|banner` → Cloudflare Pages Function (`functions/api/announcements.js`) → jsonbin. The Function edge-caches responses (`Cache-Control` + Cache API) for `TTL_MINUTES` — currently **3 hours** — so ALL devices share cached copies and jsonbin is fetched at most ~8×/day/bin (~16 requests/day combined, ~480/month worst case) no matter how many users you have
+- **Propagation delay**: edits on jsonbin reach users within up to ~3 hours worst case (edge TTL). Need faster or slower? Change `TTL_MINUTES` in `functions/api/announcements.js` and push. Want edits faster (e.g. 30–60 min)? There is ample headroom — even 10 min stayed well under the 10k monthly cap
 - **Fallback chain**: if the proxy fails, components retry direct `https://api.jsonbin.io/v3/b/<BIN_ID>/latest?t=${Date.now()}` (`cache: 'no-store'`) so announcements never go dark
 - Response wrapper handled automatically — jsonbin returns `{ record: <your JSON>, metadata: {...} }`; the app reads `.record ?? raw`
 - Components: `src/components/BroadcastBanner.tsx`, `src/components/BannerModal.tsx`
@@ -168,6 +168,6 @@ Common edits:
 | Symptom | Check |
 |---|---|
 | Pill/banner not showing | JSON valid? `id` present? Outside `startDate`–`expires` window? Banner already shown once this app load (reload to see again)? |
-| Changes not appearing | Saved in jsonbin (Ctrl+S)? Edge cache holds up to 10 min — wait or lower `TTL_MINUTES`. Confirm the proxy returns fresh content: `functions/api/announcements.js` is deployed when the branch builds — check the Cloudflare Pages build ran |
+| Changes not appearing | Saved in jsonbin (Ctrl+S)? Edge cache holds up to 3 h — wait or lower `TTL_MINUTES`. Confirm the proxy returns fresh content: `functions/api/announcements.js` is deployed when the branch builds — check the Cloudflare Pages build ran |
 | Banner shows but X disabled | Normal — countdown starts only after full display (image included) and runs 7s |
 | Pill keeps coming back | Its `id` changed since last dismiss — that's by design |
