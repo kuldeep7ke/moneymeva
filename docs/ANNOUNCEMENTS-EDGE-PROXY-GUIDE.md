@@ -27,16 +27,18 @@ platforms at all.
 ## 2. The solution (one edge proxy for ALL platforms)
 
 A single Cloudflare Pages Function acts as an **edge-cached proxy** between every
-app instance and jsonbin:
+app instance and jsonbin. The app uses **one combined bin** whose record holds both
+record families — `{ broadcasts: [...], banner: {...} }` — so there is exactly one
+cache key and one jsonbin hit per TTL window for all announcement content:
 
 ```
-Every app instance ──> https://<proxy>.pages.dev/api/announcements?type=broadcast|banner
+Every app instance ──> https://<proxy>.pages.dev/api/announcements
   ├─ Cloudflare Pages web                       │
   ├─ GitHub Pages web                           │  Cloudflare edge cache
   └─ Android APK (installed, no server)         │  ONE copy per TTL window
                                                 ▼
-                              jsonbin.io/v3/b/<bin-id>/latest
-                              (hit only on cache expiry / miss)
+                        jsonbin.io/v3/b/<bin-id>/latest
+                        (hit only on cache expiry / miss)
 ```
 
 The app calls **your own URL**, never jsonbin directly. On the first request in a
@@ -80,20 +82,20 @@ slower propagation. Everything stays well under 10k for a single bin.
 
 A Cloudflare Pages **Function** (`functions/api/announcements.js`) that
 normalizes the cache key (ignores extra query params so all devices share one
-cache entry), fetches jsonbin on a miss, caches at the edge, and always returns
-CORS headers. Bin IDs are configurable as Pages **environment variables**
-(`BROADCAST_BIN_ID` / `BANNER_BIN_ID`) with `FALLBACK_IDS` in code.
+cache entry), fetches the single combined bin on a miss, caches at the edge, and
+always returns CORS headers. The Bin ID is configurable as a Pages **environment
+variable** (`ANNOUNCEMENTS_BIN_ID`) with a hardcoded `FALLBACK_BIN_ID` in code.
 
 ```js
 const TTL_MINUTES = 180;                // 3 hours — tunable per app (see quota math, §2)
+const FALLBACK_BIN_ID = '<bin-id>';     // combined announcements bin (server-side, never in app bundles)
 
 export async function onRequestGet(context) {
   const { request, env, waitUntil } = context;
   const url = new URL(request.url);
-  const type = url.searchParams.get('type') === 'banner' ? 'banner' : 'broadcast';
-  const binId = (type === 'banner' ? env.BANNER_BIN_ID : env.BROADCAST_BIN_ID) || FALLBACK_IDS[type];
+  const binId = env.ANNOUNCEMENTS_BIN_ID || FALLBACK_BIN_ID;
 
-  const cacheKey = new Request(`${url.origin}/api/announcements?type=${type}`);
+  const cacheKey = new Request(`${url.origin}/api/announcements`);
   const cache = caches.default;
 
   let res = await cache.match(cacheKey);
@@ -132,9 +134,9 @@ export async function onRequestGet(context) {
 >   `.github/workflows/deploy-cloudflare.yml` — the repo has only three workflows
 >   (`build-apk`, `deploy-gh-pages`, `publish-package`), and Cloudflare is handled
 >   by the native integration.
-> - **No dashboard environment variables are required.** `FALLBACK_IDS` in the
->   function carries the bin IDs server-side; `BROADCAST_BIN_ID` /
->   `BANNER_BIN_ID` are optional overrides.
+> - **No dashboard environment variables are required.** `FALLBACK_BIN_ID` in the
+>   function carries the Bin ID server-side; `ANNOUNCEMENTS_BIN_ID` is an optional
+>   override.
 > - The app's canonical endpoint is
 >   `https://moneymevaonline.pages.dev/api/announcements` (the
 >   `ANNOUNCEMENTS_API` default in `src/lib/env.ts`). It is intentionally
@@ -164,7 +166,7 @@ export const ANNOUNCEMENTS_API = (
 ```ts
 const fetchJson = async () => {
   try {                                    // primary: edge-cached proxy (quota-friendly)
-    const r = await fetch(`${ANNOUNCEMENTS_API}?type=broadcast`);
+    const r = await fetch(ANNOUNCEMENTS_API);
     if (!r.ok) throw new Error();
     return await r.json();
   } catch {}
@@ -179,7 +181,9 @@ const fetchJson = async () => {
 ```
 
 Response shape is jsonbin's (`{ record: ... }`); unwrap via `res?.record ?? res`.
-Parse `expires`/`startDate` and skip stale/dismissed entries. Cache the fetched
+The record for the combined bin is `{ broadcasts: [...], banner: {...} }` — read
+`record.broadcasts` for pills and `record.banner` for the modal. Parse
+`expires`/`startDate` and skip stale/dismissed entries. Cache the fetched
 list in **module scope** so in-app navigation never re-requests it (one request
 per app load at most).
 
@@ -192,22 +196,22 @@ per app load at most).
 | Android APK | bundled WebView | cross-origin proxy | yes | edge-cached |
 | Any other host (Netlify/Vercel/custom) | same | cross-origin proxy | yes | edge-cached |
 
-All four are identical from the function's point of view — a GET with `?type=`.
-Nothing is platform-specific in the app code.
+All four are identical from the function's point of view — a plain GET to the
+canonical URL. Nothing is platform-specific in the app code.
 
 ## 5. Setting it up for a NEW app (reuse checklist)
 
-1. **jsonbin** — create a bin; paste your array (broadcast) or single object
-   (banner). Copy the bin ID.
+1. **jsonbin** — create a bin holding the combined record: `{ broadcasts: [...],
+   banner: null }` (pills), `{ banner: {...} }` (banner), or both. Copy the Bin ID.
 2. **Cloudflare Pages** — create a project (new, or reuse an existing one so the
    function rides the same edge cache). Add a `functions/api/announcements.js`
    exactly as in §3-A and `functions/` must be deployed (Cloudflare auto-runs
    Functions; no config). In Money Meva this is automatic: the deploy workflow
    deploys to both `moneymevaonline` and `moneymeva` and creates a missing
    project (`pages project create ... || true`).
-3. **Bin IDs** — optional. Set `BROADCAST_BIN_ID` / `BANNER_BIN_ID` as Production
-   env vars in the Pages dashboard, **or** skip dashboard setup entirely and let
-   `FALLBACK_IDS` in code (server-side, never in app bundles) carry the IDs — the
+3. **Bin ID** — optional. Set `ANNOUNCEMENTS_BIN_ID` as a Production env var in
+   the Pages dashboard, **or** skip dashboard setup entirely and let
+   `FALLBACK_BIN_ID` in code (server-side, never in app bundles) carries the ID — the
    Money Meva default.
 4. **App** — add the `ANNOUNCEMENTS_API` constant (§3-B) and the fetch pattern
    (§3-C). Wire the pills/banner UI to the fetched records.
@@ -231,7 +235,7 @@ Nothing is platform-specific in the app code.
 | Symptom | Likely cause | Fix |
 |---|---|---|
 | Nothing on GH Pages / APK | App called its own `/api/announcements` (old SITE_URL-derived config) and 404'd | Rebuild with `NEXT_PUBLIC_ANNOUNCEMENTS_API` unset (uses proxy) or set to proxy URL; don't reuse `SITE_URL` |
-| 404 on proxy | Wrong host / bin missing | Check the function deployed (`/api/announcements?type=broadcast` via `curl -I`) |
+| 404 on proxy | Wrong host / bin missing | Check the function deployed (`/api/announcements` via `curl -I`) |
 | CORS error in browser/WebView | Function header missing | Ensure `Access-Control-Allow-Origin: *` |
 | Stale content | Edge TTL + per-load fetch | Lower `TTL_MINUTES`, redeploy, hard-refresh app |
 | jsonbin usage climbing | Proxy bypassed (fallback engaged) | Check app network tab: requests must go to `<proxy>/api/announcements`, not `api.jsonbin.io` |

@@ -344,9 +344,9 @@ The app works fully offline without sync; sync is optional. Keep the project URL
 
 Broadcast pills and banner modals are driven by [jsonbin.io](https://jsonbin.io) — edit them online without touching this repo:
 
-1. **Create bins** — jsonbin.io → Bins → Create Bin (Public): one for broadcasts (array of pill objects), one for the banner (single object)
-2. **Wire the Bin IDs** — put them in [`functions/api/announcements.js`](functions/api/announcements.js) (server-side only; override with Pages env vars `BROADCAST_BIN_ID`/`BANNER_BIN_ID`) and in [`src/lib/env.ts`](src/lib/env.ts) as XOR+base64 obfuscated fallbacks
-3. **Build once** — after that, editing the JSON online is enough. Apps fetch `/api/announcements?type=broadcast|banner`, which the Cloudflare Function serves from an edge cache (3 h, tunable via `TTL_MINUTES` — currently `180`) → jsonbin volume stays time-bound regardless of user count
+1. **Create the bin** — jsonbin.io → Bins → Create Bin (Public): one combined bin with record shape `{ "broadcasts": [ ...pill objects ], "banner": <single object or null> }`
+2. **Wire the Bin ID** — put it in [`functions/api/announcements.js`](functions/api/announcements.js) as `FALLBACK_BIN_ID` (server-side only; override with the Pages env var `ANNOUNCEMENTS_BIN_ID`) and in [`src/lib/env.ts`](src/lib/env.ts) as an XOR+base64 obfuscated fallback
+3. **Build once** — after that, editing the JSON online is enough. Apps fetch `/api/announcements`, which the Cloudflare Function serves from an edge cache (3 h, tunable via `TTL_MINUTES` — currently `180`) → jsonbin volume stays time-bound regardless of user count
 
 Full field reference, scheduling recipes, and day-to-day workflow: [`docs/BROADCAST-GUIDE.md`](docs/BROADCAST-GUIDE.md).
 

@@ -15,7 +15,7 @@ import { useTheme, getBrands } from '@/components/ThemeProvider';
 import { useToast } from '@/components/Toast';
 import { createProgressOverlay } from '@/lib/progressOverlay';
 import { getLastSyncEvent } from '@/lib/sync-notify';
-import { BROADCAST_BIN_ID, BANNER_BIN_ID, JSONBIN_BASE, ANNOUNCEMENTS_API, BASE_PATH } from '@/lib/env';
+import { ANNOUNCEMENTS_BIN_ID, JSONBIN_BASE, ANNOUNCEMENTS_API, BASE_PATH } from '@/lib/env';
 import { RELEASE_NOTES, getLastSeenVersion } from '@/lib/whats-new';
 import { exportCustomDataExcel, type CustomExportSection } from '@/lib/export';
 import * as XLSX from 'xlsx';
@@ -295,27 +295,24 @@ export default function DeveloperPage() {
     setAnnTesting(true);
     setAnnTest(null);
     const out: string[] = [];
-    // Proxy first (production path, edge-cached), then direct jsonbin fallback
+    // Proxy first (production path, edge-cached), then direct jsonbin fallback.
+    // Single combined bin — shape { broadcasts: [...], banner: {...} }.
     try {
-      const r = await fetch(`${ANNOUNCEMENTS_API}?type=broadcast`, { cache: 'no-store' });
+      const r = await fetch(ANNOUNCEMENTS_API, { cache: 'no-store' });
       if (!r.ok) throw new Error('http');
       const j = await r.json();
       const rec = j?.record ?? j;
-      out.push(`Broadcast OK · ${Array.isArray(rec) ? rec.length : 1} item(s)`);
+      const pills = Array.isArray(rec?.broadcasts) ? rec.broadcasts : (Array.isArray(rec) ? rec : []);
+      out.push(`Proxy OK · broadcast ${pills.length} · banner ${rec?.banner?.id ?? 'none'}`);
     } catch { out.push('Proxy FAILED · trying jsonbin…'); }
     try {
-      const r = await fetch(`${JSONBIN_BASE}${BROADCAST_BIN_ID}/latest?t=${Date.now()}`, { cache: 'no-store' });
+      const r = await fetch(`${JSONBIN_BASE}${ANNOUNCEMENTS_BIN_ID}/latest?t=${Date.now()}`, { cache: 'no-store' });
       if (!r.ok) throw new Error('http');
       const j = await r.json();
       const rec = j?.record ?? j;
-      out.push(`jsonbin broadcast OK · ${Array.isArray(rec) ? rec.length : 1} item(s)`);
-    } catch { out.push('jsonbin broadcast FAILED'); }
-    try {
-      const r = await fetch(`${ANNOUNCEMENTS_API}?type=banner`, { cache: 'no-store' });
-      if (!r.ok) throw new Error('http');
-      const j = await r.json();
-      out.push(`Banner OK · ${j?.record?.id || 'no id'}`);
-    } catch { out.push('Banner proxy FAILED'); }
+      const pills = Array.isArray(rec?.broadcasts) ? rec.broadcasts : (Array.isArray(rec) ? rec : []);
+      out.push(`jsonbin OK · broadcast ${pills.length} · banner ${rec?.banner?.id ?? 'none'}`);
+    } catch { out.push('jsonbin FAILED'); }
     setAnnTest(out.join(' · '));
     setAnnTesting(false);
   };
@@ -667,8 +664,7 @@ const loadRemoteRows = async () => {
             subtitle="Broadcast pills & banner are fetched live from jsonbin.io on every dashboard load — edit them online, no app update needed."
           >
             <div className="rounded-xl border border-slate-200 dark:border-brand-muted/40 bg-white/60 dark:bg-white/5 p-3">
-              <StatRow label="Broadcast bin" value={mask(BROADCAST_BIN_ID)} />
-              <StatRow label="Banner bin" value={mask(BANNER_BIN_ID)} />
+              <StatRow label="Announcements bin" value={mask(ANNOUNCEMENTS_BIN_ID)} />
               <StatRow label="Dismissed pills (this device)" value={dismissedCount} />
             </div>
             {annTest && (

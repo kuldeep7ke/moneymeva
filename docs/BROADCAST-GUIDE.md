@@ -17,16 +17,31 @@ You edit JSON on jsonbin.io  →  Cloudflare edge caches it (3 h)  →  apps fet
 
 ---
 
-## Your Bins
+## Your Bin
 
 | Content | Bin ID | API URL |
 |---|---|---|
-| Broadcast pills | `6aa8b329ac6210605ace3a6a` | https://api.jsonbin.io/v3/b/6aa8b329ac6210605ace3a6a/latest |
-| Banner modal | `6aa8b311ac6210605ace3a0b` | https://api.jsonbin.io/v3/b/6aa8b311ac6210605ace3a0b/latest |
+| Broadcast pills **and** banner (one combined bin) | `6aafc4baac6210605ae254df` | https://api.jsonbin.io/v3/b/6aafc4baac6210605ae254df/latest |
 
-Dashboard: https://jsonbin.io → **Bins** → click a bin → edit → **Save (Ctrl+S)**
+Dashboard: https://jsonbin.io → **Bins** → click the bin → edit → **Save (Ctrl+S)**
 
-The Bin IDs live obfuscated (XOR + base64) in `src/lib/env.ts` (`BROADCAST_BIN_ID`, `BANNER_BIN_ID`) — they are decoded at runtime and never appear as plain text in the web/APK bundles. To change bins, edit `env.ts` and rebuild.
+The Bin ID lives obfuscated (XOR + base64) in `src/lib/env.ts` (`ANNOUNCEMENTS_BIN_ID`) and server-side in `functions/api/announcements.js` (`FALLBACK_BIN_ID`) — it is decoded at runtime and never appears as plain text in the web/APK bundles. To change bins, edit both and rebuild.
+
+### Combined Bin Shape
+
+One bin holds everything. The record is an object with two keys:
+
+```json
+{
+  "broadcasts": [ ... ],
+  "banner": { ... }
+}
+```
+
+- `broadcasts` — array, one object per broadcast pill (§ Broadcast Pill)
+- `banner` — single object, or `null` when no banner is scheduled (§ Banner Modal)
+- Send only pills → `{ "broadcasts": [...], "banner": null }` (or omit `banner`)
+- Send only a banner → `{ "banner": {...} }` (or `broadcasts: []`)
 
 ---
 
@@ -74,22 +89,27 @@ Small floating notification centered at the top of the screen. Does NOT block co
 
 ## Banner Modal
 
-Full-screen overlay popup, centered card. Blocks content until dismissed (X appears after 5s).
+Full-screen overlay popup, centered card. Blocks content until dismissed (X appears after 7s).
 
-### Current Format (single object)
+### Current Format (single object under the combined bin's `banner` key)
 
 ```json
 {
-  "id": "banner-2026-08-19-v3",
-  "title": "Money Meva v7.1.2 is Live!",
-  "content": "Track your income, expenses, and investments — all offline-first.",
-  "image": "https://placehold.co/800x400/FF8A3D/FFFFFF?text=Money+Meva+v7.1.2",
-  "href": "https://github.com/kuldeep7ke/moneymeva/releases",
-  "width": "max-w-xl",
-  "startDate": "2026-08-19",
-  "expires": "2026-09-19"
+  "broadcasts": [],
+  "banner": {
+    "id": "banner-2026-08-19-v3",
+    "title": "Money Meva v7.1.2 is Live!",
+    "content": "Track your income, expenses, and investments — all offline-first.",
+    "image": "https://placehold.co/800x400/FF8A3D/FFFFFF?text=Money+Meva+v7.1.2",
+    "href": "https://github.com/kuldeep7ke/moneymeva/releases",
+    "width": "max-w-xl",
+    "startDate": "2026-08-19",
+    "expires": "2026-09-19"
+  }
 }
 ```
+
+The whole payload above is the bin's record — banners sit nested under `banner`.
 
 ### Fields
 
@@ -123,7 +143,7 @@ Never shows again: set `expires` in the past.
 
 ### Behavior
 - **Shows once per app start/refresh/reload** — in-app menu navigation never re-shows it; a real reload does
-- While the JSON fetches, a skeleton loading card shows (spinner + pulsing blocks)
+- **Nothing ever paints while the bin is being fetched** — if the banner is absent, expired or outside its window, the app shows no overlay at all (no loading flash on reload). A confirmed, in-window banner mounts directly with a skeleton card (spinner + pulsing blocks) while its content prepares
 - The X button (top-right) appears only after the banner FULLY displays — if there's an image, it waits for the image to finish loading — then counts down **7 seconds** (number badge → spinner → X)
 - Backdrop click does NOT close (app convention)
 - If `href` set, tapping the card opens the link (X still closes)
@@ -134,7 +154,7 @@ Never shows again: set `expires` in the past.
 ## Editing Workflow (Day to Day)
 
 1. Open https://jsonbin.io → login
-2. **Bins** → click the bin (Broadcast or Banner)
+2. **Bins** → click the bin (**Announcements for Money Meva**)
 3. Edit the JSON in the editor
 4. **Ctrl+S / Save**
 5. Done — every user gets it next time the app opens
@@ -142,11 +162,11 @@ Never shows again: set `expires` in the past.
 Common edits:
 | Goal | Do this |
 |---|---|
-| New announcement | Change `id` (bump vN) + `message`/`title` in the broadcast array |
-| Remove old announcement | Delete its object from the array |
-| Stop a banner | Set `expires` to yesterday (or delete its content) |
-| Schedule a banner | Set `startDate` (+ optional `expires`) |
-| Make banner clickable ad | Set `href` + optional `image` |
+| New announcement | Change `id` (bump vN) + `message`/`title` in the `broadcasts` array |
+| Remove old announcement | Delete its object from the `broadcasts` array |
+| Stop a banner | Set `banner.expires` to yesterday (or set `banner` to `null`) |
+| Schedule a banner | Set `banner.startDate` (+ optional `banner.expires`) |
+| Make banner clickable ad | Set `banner.href` + optional `banner.image` |
 
 > **Note:** changing the broadcast `id` re-shows the pill even for users who dismissed an older one. Same `id` stays hidden after dismissal.
 
@@ -154,13 +174,13 @@ Common edits:
 
 ## Technical Notes
 
-- **Fetch path (quota protection)**: app → `https://moneymevaonline.pages.dev/api/announcements?type=broadcast|banner` → Cloudflare Pages Function (`functions/api/announcements.js`) → jsonbin. The Function edge-caches responses (`Cache-Control` + Cache API) for `TTL_MINUTES` — currently **3 hours** — so ALL devices share cached copies and jsonbin is fetched at most ~8×/day/bin (~16 requests/day combined, ~480/month worst case) no matter how many users you have
+- **Fetch path (quota protection)**: app → `https://moneymevaonline.pages.dev/api/announcements` → Cloudflare Pages Function (`functions/api/announcements.js`) → jsonbin. The Function edge-caches responses (`Cache-Control` + Cache API) for `TTL_MINUTES` — currently **3 hours** — so ALL devices share cached copies and jsonbin is fetched at most ~8×/day (one bin now — ~240/month worst case) no matter how many users you have
 - **Propagation delay**: edits on jsonbin reach users within up to ~3 hours worst case (edge TTL). Need faster or slower? Change `TTL_MINUTES` in `functions/api/announcements.js` and push. Want edits faster (e.g. 30–60 min)? There is ample headroom — even 10 min stayed well under the 10k monthly cap
 - **Fallback chain**: if the proxy fails, components retry direct `https://api.jsonbin.io/v3/b/<BIN_ID>/latest?t=${Date.now()}` (`cache: 'no-store'`) so announcements never go dark
-- Response wrapper handled automatically — jsonbin returns `{ record: <your JSON>, metadata: {...} }`; the app reads `.record ?? raw`
+- Response wrapper handled automatically — jsonbin returns `{ record: <your JSON>, metadata: {...} }`; the app reads `.record ?? raw`, then uses `record.broadcasts` / `record.banner`
 - Components: `src/components/BroadcastBanner.tsx`, `src/components/BannerModal.tsx`
-- Config: `src/lib/env.ts` (`BROADCAST_BIN_ID`, `BANNER_BIN_ID`, `JSONBIN_BASE`, `ANNOUNCEMENTS_API` — XOR-obfuscated, decoded at runtime). To live-test a bin: open the bin URL (or the proxy) in a browser and confirm it returns `{ record: … }` for the type; the app's test hook hits proxy first, jsonbin as fallback
-- Bin IDs also live server-side in `functions/api/announcements.js` (override via Pages env vars `BROADCAST_BIN_ID` / `BANNER_BIN_ID` in the Cloudflare dashboard — fallbacks are hardcoded there too)
+- Config: `src/lib/env.ts` (`ANNOUNCEMENTS_BIN_ID`, `JSONBIN_BASE`, `ANNOUNCEMENTS_API` — XOR-obfuscated, decoded at runtime). To live-test the bin: open the bin URL (or the proxy) in a browser and confirm it returns `{ record: { broadcasts: [...], banner: {...} } }`; the app's test hook (Developer page → Announcements → Test Bin Fetch) reports both counts from one fetch
+- Bin ID also lives server-side in `functions/api/announcements.js` (override via the Pages env var `ANNOUNCEMENTS_BIN_ID` in the Cloudflare dashboard — the fallback is hardcoded there too)
 - To switch services later: change the upstream URL in `functions/api/announcements.js` (one place)
 
 ## Troubleshooting

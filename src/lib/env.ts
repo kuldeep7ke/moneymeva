@@ -25,9 +25,10 @@ export const SITE_URL = (
 
 export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || '';
 
-// jsonbin.io Bin IDs (broadcast & banner — edit via jsonbin.io dashboard, see docs/BROADCAST-GUIDE.md)
-export const BROADCAST_BIN_ID = _d('Ww4PXRteV08ADllcVElbVUMADgpdBE8M');
-export const BANNER_BIN_ID = _d('Ww4PXRteVEcADllcVElbVUMADgpdBEkP');
+// jsonbin.io Bin ID — ONE combined bin holding BOTH broadcast pills and the banner
+// ("Announcements for Money Meva", record shape { broadcasts: [...], banner: {...} }).
+// Edit via jsonbin.io dashboard, see docs/BROADCAST-GUIDE.md.
+export const ANNOUNCEMENTS_BIN_ID = _d('Ww4PAxpZBxcADllcVElbVUMACF1bUR0L');
 export const JSONBIN_BASE = _d('BRsaFQpXSlkAHQZADwoCCxQIA0EHClYbVlkDQg==');
 
 // Edge-cached proxy (Cloudflare Pages Function, functions/api/announcements.js).

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { X, Loader2 } from 'lucide-react';
-import { BANNER_BIN_ID, JSONBIN_BASE, ANNOUNCEMENTS_API } from '@/lib/env';
+import { ANNOUNCEMENTS_BIN_ID, JSONBIN_BASE, ANNOUNCEMENTS_API } from '@/lib/env';
 import { isWithinPeriod } from '@/lib/utils';
 
 interface BannerData {
@@ -65,15 +65,16 @@ export default function BannerModal() {
     if (!enabled) { setLoading(false); notifyBannerDone(); return; }
     if (bannerShownThisLoad) { setLoading(false); notifyBannerDone(); return; }
     // Primary: edge-cached proxy (quota-friendly). Fallback: direct jsonbin.
+    // Single combined bin — shape { broadcasts: [...], banner: {...} }.
     const fetchJson = async (): Promise<any | null> => {
       try {
-        const r = await fetch(`${ANNOUNCEMENTS_API}?type=banner`);
+        const r = await fetch(ANNOUNCEMENTS_API);
         if (!r.ok) throw new Error();
         return await r.json();
       } catch {}
       try {
-        if (!BANNER_BIN_ID) return null;
-        const r = await fetch(`${JSONBIN_BASE}${BANNER_BIN_ID}/latest?t=${Date.now()}`, { cache: 'no-store' });
+        if (!ANNOUNCEMENTS_BIN_ID) return null;
+        const r = await fetch(`${JSONBIN_BASE}${ANNOUNCEMENTS_BIN_ID}/latest?t=${Date.now()}`, { cache: 'no-store' });
         if (!r.ok) throw new Error();
         return await r.json();
       } catch {}
@@ -82,7 +83,9 @@ export default function BannerModal() {
     fetchJson()
       .then((res: any) => {
         if (!res) { notifyBannerDone(); return; }
-        const b: BannerData = res?.record ?? res;
+        const rec = res?.record ?? res;
+        const banner = rec?.banner ?? (Array.isArray(rec) || typeof rec?.broadcasts === 'object' ? null : rec);
+        const b: BannerData | null = banner && banner.id ? banner : null;
         if (!b?.id || !b?.content) { notifyBannerDone(); return; }
         if (!isWithinPeriod(b.startDate, b.expires)) { notifyBannerDone(); return; }
         bannerShownThisLoad = true;
@@ -115,10 +118,25 @@ export default function BannerModal() {
   }, []);
   const onImgDone = useCallback(() => setReady(true), []);
 
-  if (loading) {
+  // NEVER paint while deciding whether anything should show. This kills the
+  // loading flash on hard reload when the banner is expired / hidden / absent —
+  // the overlay simply never appears. Only a confirmed valid in-period banner
+  // mounts the overlay, starting with a skeleton while its content prepares.
+  if (loading) return null;
+
+  if (!data) return null;
+
+  const widthClass = data.width || 'max-w-md';
+  const Wrapper = data.href ? 'a' : 'div';
+  const wrapperProps = data.href ? { href: data.href, target: '_blank', rel: 'noopener noreferrer' } : {};
+  const canClose = countdown !== null && countdown <= 0;
+
+  // Valid banner confirmed but content not ready yet (no image → ready flips on
+  // next tick): show the skeleton inside the overlay, not a separate loading screen.
+  if (!ready) {
     return (
       <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-[calc(100vw-2rem)] overflow-hidden">
+        <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl ${widthClass} w-[calc(100vw-2rem)] overflow-hidden`}>
           <div className="h-44 bg-slate-200 dark:bg-slate-800 flex items-center justify-center gap-2">
             <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
             <span className="text-xs text-slate-400 font-medium">Loading…</span>
@@ -134,13 +152,6 @@ export default function BannerModal() {
       </div>
     );
   }
-
-  if (!data) return null;
-
-  const widthClass = data.width || 'max-w-md';
-  const Wrapper = data.href ? 'a' : 'div';
-  const wrapperProps = data.href ? { href: data.href, target: '_blank', rel: 'noopener noreferrer' } : {};
-  const canClose = countdown !== null && countdown <= 0;
 
   return (
     <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm">
