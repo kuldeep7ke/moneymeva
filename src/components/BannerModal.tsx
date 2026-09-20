@@ -95,9 +95,22 @@ export default function BannerModal() {
       .finally(() => setLoading(false));
   }, [enabled]);
 
-  // No image → banner is fully rendered as soon as data paints
+  // No image → banner is fully rendered as soon as data paints.
+  // With an image, preload it in JS (independent of the <img> in the ready
+  // branch) so the skeleton can never deadlock — onerror also flips ready so a
+  // broken image degrades to a text-only banner instead of hanging.
   useEffect(() => {
-    if (data && !data.image) setReady(true);
+    if (!data) return;
+    if (!data.image) { setReady(true); return; }
+    let cancelled = false;
+    const finish = () => { if (!cancelled) setReady(true); };
+    const img = new window.Image();
+    img.onload = finish;
+    img.onerror = finish;
+    img.src = data.image;
+    if (img.complete && img.naturalWidth > 0) finish();
+    const timer = window.setTimeout(finish, 10000);
+    return () => { cancelled = true; window.clearTimeout(timer); };
   }, [data]);
 
   // Countdown starts once fully displayed (7s)
@@ -136,7 +149,14 @@ export default function BannerModal() {
   if (!ready) {
     return (
       <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm">
-        <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl ${widthClass} w-[calc(100vw-2rem)] overflow-hidden`}>
+        <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl ${widthClass} w-[calc(100vw-2rem)] overflow-hidden relative`}>
+          <button
+            onClick={dismiss}
+            aria-label="Close banner"
+            className="absolute top-3 right-3 z-10 h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 flex items-center justify-center text-white"
+          >
+            <X className="h-4 w-4" />
+          </button>
           <div className="h-44 bg-slate-200 dark:bg-slate-800 flex items-center justify-center gap-2">
             <Loader2 className="h-6 w-6 text-slate-400 animate-spin" />
             <span className="text-xs text-slate-400 font-medium">Loading…</span>
