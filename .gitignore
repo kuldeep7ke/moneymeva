@@ -23,3 +23,12 @@ tsconfig.tsbuildinfo
 electron/
 electron-builder.yml
 dist-desktop/
+
+# Local full-site backups. These are multi-gigabyte archives, not source: one of
+# them (backup/Money Meva.7z) is 1.4 GB, and committing it would put a binary
+# that size into history permanently — git stores every blob forever, so a
+# single accidental `git add backup/` is not something a later `git rm` undoes.
+# Ignore the whole directory rather than the file: the archives are renamed as
+# the site is snapshotted, and a name-specific rule is missed by the next one.
+backup/
+backups/
