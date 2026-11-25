@@ -1,7 +1,7 @@
 -- Money Meva — Cloud Sync on Supabase (shared database, no accounts)
 -- Run this in: Supabase Dashboard → SQL Editor → New query → Run
 -- Creates/upgrades the sync_docs table used by the app's cloud sync.
--- EVERY device that connects with the project URL + anon key reads and writes
+-- EVERY device that connects with the project URL + publishable key reads and writes
 -- the SAME rows (old CouchDB model) — no email/password/accounts required.
 
 -- Every app feature stores its data as JSON documents in THIS single table
@@ -88,9 +88,10 @@ create index if not exists sync_docs_updated_at_idx on public.sync_docs (updated
 -- (getRemoteStats / getRemoteRows in src/lib/pouchdb.ts) group by this.
 create index if not exists sync_docs_entity_idx on public.sync_docs (entity);
 
--- Row Level Security stays ON but is fully open to the anon key: any device
--- that knows the project URL + anon key shares this one database (the model
--- the user chose — same as the original CouchDB sync).
+-- Row Level Security stays ON but is fully open (every policy is using/check true): any
+-- device that knows the project URL + publishable key shares this one database (the
+-- model the user chose — same as the original CouchDB sync). Postgres still evaluates
+-- those policies as the anon role, so the role name here must not be renamed.
 alter table public.sync_docs enable row level security;
 
 drop policy if exists "sync_docs_shared_select" on public.sync_docs;

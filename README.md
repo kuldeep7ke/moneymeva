@@ -20,7 +20,7 @@ This README documents the project surface — features, architecture, setup, and
 Money Meva was built around a single belief: **financial clarity should not require surrendering privacy**. Every feature, every tradeoff, every line of code traces back to this.
 
 - **Local-first by default** — your data lives in your browser's IndexedDB. No cloud required, no accounts to create, no subscription to maintain.
-- **Sync is optional** — multi-device sync exists only so you are not chained to one device. It uses a shared Supabase database — every device with the same project URL + anon key reads and writes the same rows (link-only, like the original CouchDB model). No email/password, no accounts.
+- **Sync is optional** — multi-device sync exists only so you are not chained to one device. It uses a shared Supabase database — every device with the same project URL + publishable key reads and writes the same rows (link-only, like the original CouchDB model). No email/password, no accounts.
 - **PINs, not passwords** — sensitive operations (deletes, edits, exports) require a 4-digit PIN, not a backend call. Security without dependence.
 - **Soft-delete everywhere** — nothing is truly gone. Every entity carries a `deletedAt` timestamp. The archive is your safety net.
 - **Transitions are traceable** — every mutation carries a `transitionId`, linking lifecycles across entities. The ledger is the source of truth.
@@ -64,11 +64,11 @@ Money Meva was built around a single belief: **financial clarity should not requ
 ### Multi-Device Sync (Supabase)
 - **PouchDB + Supabase** — a local PouchDB buffer (`mm_pouch`) syncs to a shared Supabase `sync_docs` table. Manual + live (realtime) sync. Data is stored on the cloud — it doubles as a backup.
 - **Every section syncs** — all entity types (transactions, partners, recurring, budgets, reminders, adjustments, goals, works, partnerships, partnership_entries), the PIN batch, and the audit trail (mutation_log) push through one doc store (`entity:id` rows). UI preferences stay on-device.
-- **Link-only (no accounts)** — every device with the same project URL + anon key reads and writes the **same rows**. No email/password, no Google sign-in, no anonymous accounts. Same model as the original CouchDB sync.
-- **Setup** — owner creates a Supabase project, runs `supabase/schema.sql` once (shared table + open RLS), then shares the project URL + anon key with devices. Users paste them in Settings → Multi-Device Sync → Connect.
+- **Link-only (no accounts)** — every device with the same project URL + publishable key reads and writes the **same rows**. No email/password, no Google sign-in, no anonymous accounts. Same model as the original CouchDB sync.
+- **Setup** — owner creates a Supabase project, runs `supabase/schema.sql` once (shared table + open RLS), then shares the project URL + publishable key with devices. Users paste them in Settings → Multi-Device Sync → Connect.
 - **Live sync** — realtime subscription pushes remote changes into the local buffer within seconds; a 30-second reconnect timer handles drops.
 - **Manual sync** — `manualSync()` returns `{ ok, pushed, pulled }` with actual doc counts. Push errors now surface the real underlying Postgres error for debugging.
-- **Bring your own Supabase** — users can paste a different URL + anon key per device in Settings to point at their own project.
+- **Bring your own Supabase** — users can paste a different URL + publishable key per device in Settings to point at their own project.
 
 ### User Experience
 - **Multi-user** — Multiple profiles with quick-switch from login screen.
@@ -100,7 +100,7 @@ Money Meva was built around a single belief: **financial clarity should not requ
 | PDF | jsPDF 4 + jspdf-autotable |
 | Excel | SheetJS (xlsx) |
 | Dates | date-fns 4 |
-| Auth | Local profiles (email/password or Google OAuth → local profile) for app; Supabase anon key for cloud sync |
+| Auth | Local profiles (email/password or Google OAuth → local profile) for app; Supabase publishable key for cloud sync |
 | Mobile | Capacitor 8 (Android) — app, browser, filesystem, share, local-notifications, status-bar |
 | Linting | ESLint 9 |
 
@@ -147,7 +147,7 @@ Money Meva was built around a single belief: **financial clarity should not requ
                          │  Supabase sync_docs (opt-in)│
                          │  Cloud hub + backup         │
                           │  Shared rows (link-only)    │
-                          │  Open RLS (anon key)        │
+                          │  Open RLS (publishable key) │
                          │  Realtime subscription      │
                          │  Auto-reconnect (30s)       │
                          └────────────────────────────┘
@@ -164,7 +164,7 @@ Every entity carries: `id`, `transitionId`, `userId`, `createdAt`, `updatedAt`, 
 
 ```
 connectRemote(url, key):
-  init Supabase client (url + anon key)
+  init Supabase client (url + publishable key)
   lightweight ping → { ok, error? }        ← no sign-in, no auth session
   saveConfig(url, key)                      ← persist for reconnection
   subscribe to sync_docs_realtime (replica identity full)
@@ -248,7 +248,7 @@ src/
 │       └── button.tsx           # Reusable button component
 ├── lib/                         # Core logic
 │   ├── store.ts                 # Data layer (cache + Dexie + sync + CRUD)
-│   ├── pouchdb.ts               # Cloud sync: Supabase (link-only URL + anon key) + sync_docs + local PouchDB buffer
+│   ├── pouchdb.ts               # Cloud sync: Supabase (link-only URL + publishable key) + sync_docs + local PouchDB buffer
 │   ├── db.ts                    # Dexie schema (tables, indexes)
 │   ├── localAuth.ts             # Email/password auth (local)
 │   ├── pinStore.ts              # PIN generation and validation
@@ -318,25 +318,25 @@ All launchers auto-install deps, rebuild when src/ is newer than out/, and open 
 
 ## Cloud Sync Setup
 
-Cloud sync uses **Supabase** (Postgres + Realtime) — every device that connects with the project URL + anon key reads and writes the same rows. No email/password, no accounts.
+Cloud sync uses **Supabase** (Postgres + Realtime) — every device that connects with the project URL + publishable key reads and writes the same rows. No email/password, no accounts. New Supabase projects use a publishable API key (`sb_publishable_...`); legacy `anon public` keys still work until Supabase retires them.
 
 > **Self-hosting the app with your own database?**
 > Follow the step-by-step guide: **[SELF-HOSTING.md](SELF-HOSTING.md)** — clone → create a free Supabase project → run `supabase/schema.sql` → fill 3 values in `.env.local` → rebuild. Offline-first by default; cloud sync is optional.
 
 1. **Create a Supabase project** at https://supabase.com (free tier is enough)
 2. **Create the shared sync table** — open SQL Editor, run the contents of [`supabase/schema.sql`](supabase/schema.sql)
-3. **Get your keys** — Project Settings → API:
+3. **Get your keys** — Project Settings → API Keys:
    - Project URL: `https://<project-ref>.supabase.co`
-   - anon public key (starts with `eyJ…`)
-4. **Keys are NOT baked in** — the repo ships cloud-free. Create `.env.local` from [`.env.example`](.env.example) with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SITE_URL` and rebuild (full walkthrough: [SELF-HOSTING.md](SELF-HOSTING.md)). End users can also paste a project URL + key per device in Settings at runtime.
+   - Publishable key (starts with `sb_publishable_...`) — the **Publishable key** row
+4. **Keys are NOT baked in** — the repo ships cloud-free. Create `.env.local` from [`.env.example`](.env.example) with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_SITE_URL` and rebuild (full walkthrough: [SELF-HOSTING.md](SELF-HOSTING.md)). End users can also paste a project URL + key per device in Settings at runtime.
 5. **In-app** — Settings → Multi-Device Sync:
-   - Paste the **Supabase project URL** + **anon key**
+   - Paste the **Supabase project URL** + **publishable key**
    - Tap **Connect** — your local data is pushed to the cloud
-6. **Repeat on each device** — same URL + anon key on every device → all share the same data
+6. **Repeat on each device** — same URL + publishable key on every device → all share the same data
 
-The app works fully offline without sync; sync is optional. Keep the project URL private — anyone with the URL + anon key can read/write the data.
+The app works fully offline without sync; sync is optional. Keep the project URL private — anyone with the URL + publishable key can read/write the data.
 
-> **Advanced:** users can paste a different URL + anon key directly in Settings to point at their own Supabase project (bring-your-own-Supabase).
+> **Advanced:** users can paste a different URL + publishable key directly in Settings to point at their own Supabase project (bring-your-own-Supabase).
 
 ---
 

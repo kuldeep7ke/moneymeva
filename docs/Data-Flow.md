@@ -41,5 +41,5 @@ Local PouchDB (mm_pouch)
 3. **Soft-delete** — `deletedAt` field, never hard delete
 4. **transitionId** — Links all mutations for one entity
 5. **mutation_log** — Every write logged for audit ledger
-6. **Cloud rows are shared** — every device with the anon key reads/writes the same rows;
+6. **Cloud rows are shared** — every device with the publishable key reads/writes the same rows;
    keep the project URL private to protect data

@@ -127,7 +127,7 @@ docker run -d -p 8080:80 ghcr.io/kuldeep7ke/moneymeva:latest
 # Or build with your own Supabase values
 docker build \
   --build-arg NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co \
-  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ... \
+  --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_... \
   --build-arg NEXT_PUBLIC_SITE_URL=http://localhost:8080 \
   -t moneymeva . && docker run -d -p 8080:80 moneymeva
 ```
@@ -197,8 +197,8 @@ Requires Docker Desktop or `docker-ce` installed.
 |---|---|---|
 | "Google sign-in not enabled" | OAuth provider not configured in Supabase | See SELF-HOSTING.md Step 4 (only needed for the Google option on the login screen — sync itself needs no provider) |
 | `redirect_uri_mismatch` | Redirect URI typo | Must match your `NEXT_PUBLIC_SITE_URL` — see SELF-HOSTING.md Step 4 |
-| Login works (incl. Google) but nothing syncs | Cloud sync not connected | Sync is link-only and separate from login: paste the Supabase URL + anon key in Settings → Multi-Device Sync → Connect |
-| `new row violates RLS policy` | Old per-user schema still applied | Re-run `supabase/schema.sql` (idempotent migration to open link-only RLS); use the **anon** key only |
+| Login works (incl. Google) but nothing syncs | Cloud sync not connected | Sync is link-only and separate from login: paste the Supabase URL + publishable key in Settings → Multi-Device Sync → Connect |
+| `new row violates RLS policy` | Old per-user schema still applied | Re-run `supabase/schema.sql` (idempotent migration to open link-only RLS); use the **publishable** key only |
 | Sync stops after laptop sleep | Socket dropped | Auto-reconnects within ~30s, or tap Sync Now |
 
 ---
@@ -218,7 +218,7 @@ The entire app can run from a USB drive on any OS:
 | Variable | Purpose | Default |
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL | (empty — cloud-free) |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key | (empty — cloud-free) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Your Supabase publishable key | (empty — cloud-free) |
 | `NEXT_PUBLIC_SITE_URL` | Where the app is served | `https://moneymevaonline.pages.dev` |
 
 Set in `.env.local` (create from `.env.example`). Values are baked in at **build time** — rebuild after changing.

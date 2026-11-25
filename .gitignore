@@ -16,8 +16,8 @@ android/.gradle/
 android/build/
 android/local.properties
 .cxx/
-tsconfig.tsbuildinfo  
-.obsidian/ 
+tsconfig.tsbuildinfo
+.obsidian/
 
 # Shelved desktop (Electron) scaffold — kept out of deploys until resumed
 electron/

@@ -288,7 +288,7 @@ export default function DeveloperPage() {
     const r = await checkConnection();
     setSyncOk(r);
     setSyncing(false);
-    toast(r ? 'Connection OK — remote is reachable' : 'Connection failed — check URL, anon key and network', r ? 'success' : 'error');
+    toast(r ? 'Connection OK — remote is reachable' : 'Connection failed — check URL, publishable key and network', r ? 'success' : 'error');
   };
 
   const testAnnouncements = async () => {
@@ -513,7 +513,7 @@ const loadRemoteRows = async () => {
 
   const handleConnect = async () => {
     if (!connectUrl.trim()) { setConnectStatus('URL is required'); return; }
-    if (!connectKey.trim()) { setConnectStatus('Anon key is required'); return; }
+    if (!connectKey.trim()) { setConnectStatus('Publishable key is required'); return; }
     setConnecting(true);
     setConnectStatus('Connecting…');
     try {
@@ -755,11 +755,11 @@ const loadRemoteRows = async () => {
                 <Field label="Supabase URL" htmlFor="dev-connect-url">
                   <input id="dev-connect-url" name="devConnectUrl" type="text" placeholder="https://xxx.supabase.co" value={connectUrl} onChange={e => setConnectUrl(e.target.value)} className={inputCls} />
                 </Field>
-                <Field label="Anon key" htmlFor="dev-connect-key">
-                  <input id="dev-connect-key" name="devConnectKey" type="text" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" value={connectKey} onChange={e => setConnectKey(e.target.value)} className={inputCls} />
+                <Field label="Publishable key" htmlFor="dev-connect-key">
+                  <input id="dev-connect-key" name="devConnectKey" type="text" placeholder="sb_publishable_…" value={connectKey} onChange={e => setConnectKey(e.target.value)} className={inputCls} />
                 </Field>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Shared database connection — URL + anon key only, no email/password. Every device connecting with
+                  Shared database connection — URL + publishable key only, no email/password. Every device connecting with
                   these reads and writes the same rows.
                 </p>
                 <p className="text-xs text-slate-400">Temporary connection — does not overwrite saved Settings config.</p>

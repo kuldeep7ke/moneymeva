@@ -5,15 +5,13 @@ export interface WhatsNewItem {
 }
 
 export const RELEASE_NOTES: WhatsNewItem = {
-  version: 'v7.3.0.38',
-  date: '11 Sep 2026',
+  version: 'v7.3.0',
+  date: '25 Nov 2026',
   items: [
-    'Shared sync database — every device with the same URL + anon key shares one database',
-    'No accounts needed: connect with just a project URL + anon key (like the old CouchDB model)',
-    'Settings now shows "Shared database" and total cloud row count',
+    'Cloud sync now uses a Supabase publishable API key (starts with sb_publishable_); legacy anon keys still work',
+    'Settings, Developer and Setup Guide all label the credential "Publishable key"',
+    'Shared sync database — every device with the same URL + publishable key shares one database',
     'Setup Guide simplified: 2 steps (create project, run SQL)',
-    'Push errors now show the real underlying issue (e.g. schema not applied)',
-    'Sync no longer shows false "failed to store" errors after a healthy sync',
   ],
 };
 
@@ -27,8 +25,17 @@ export function markVersionSeen(version: string): void {
   try { localStorage.setItem(STORAGE_KEY, version); } catch {}
 }
 
+// `prebuild` bumps the 4th VERSION segment on every build, so release-level
+// comparison must ignore it — otherwise the modal re-opens after each deploy.
+const BUILD_SUFFIX = /^(v?\d+\.\d+\.\d+)\.\d+$/;
+
+export function releaseBase(version: string): string {
+  const m = (version || '').match(BUILD_SUFFIX);
+  return m ? m[1] : version;
+}
+
 export function shouldShowWhatsNew(currentVersion: string): boolean {
   const lastSeen = getLastSeenVersion();
   if (!lastSeen) return true;
-  return lastSeen !== currentVersion;
+  return releaseBase(lastSeen) !== releaseBase(currentVersion);
 }

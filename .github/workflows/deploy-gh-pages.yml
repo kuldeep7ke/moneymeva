@@ -2,7 +2,7 @@
 # name (GITHUB_REPOSITORY) in next.config.ts, so it serves at /<repo-name>/.
 # Requires Pages source = "GitHub Actions" (set once in repo Settings → Pages).
 # Optional repo variables/secrets for cloud features:
-#   NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY / NEXT_PUBLIC_SITE_URL
+#   NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY / NEXT_PUBLIC_SITE_URL
 name: Deploy to GitHub Pages
 
 on:
@@ -33,7 +33,7 @@ jobs:
         env:
           DEPLOY_TARGET: gh-pages
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
       - uses: actions/upload-pages-artifact@v5
         with:

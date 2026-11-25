@@ -165,7 +165,7 @@ export default function CloudSetupWizard({ open, onClose }: { open: boolean; onC
               type="password"
               value={draft.key}
               onChange={e => setDraft(d => ({ ...d, key: e.target.value }))}
-              placeholder="Anon public key (eyJ…)"
+              placeholder="Publishable key (sb_publishable_…)"
               className="w-full bg-slate-50 dark:bg-brand-dark rounded-lg border border-slate-200 dark:border-brand-muted px-3 py-2.5 text-sm outline-none focus:border-sky-400 text-slate-700 dark:text-slate-200"
             />
             {!hasCreds && (
@@ -181,7 +181,7 @@ export default function CloudSetupWizard({ open, onClose }: { open: boolean; onC
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">1. Create a free Supabase project</p>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                {hasCreds && states.project === 'done' ? 'Project found and reachable.' : 'No credit card needed. Then paste the URL + anon key above.'}
+                {hasCreds && states.project === 'done' ? 'Project found and reachable.' : 'No credit card needed. Then paste the URL + publishable key above.'}
               </p>
               <a href="https://database.new" target="_blank" rel="noreferrer"
                  className="mt-1.5 inline-flex items-center gap-1 text-xs font-medium text-sky-600 dark:text-sky-400 hover:underline">
@@ -218,7 +218,7 @@ export default function CloudSetupWizard({ open, onClose }: { open: boolean; onC
           <div className="rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-900/20 p-3 text-xs text-sky-700 dark:text-sky-300">
             <p className="font-semibold">Shared database — no sign-in needed</p>
             <p className="mt-0.5 text-sky-600/90 dark:text-sky-300/70">
-              Sync works with just the project URL + anon key. No email/password, no Google/redirect setup. Every device
+              Sync works with just the project URL + publishable key. No email/password, no Google/redirect setup. Every device
               connecting with these shares the same data.
             </p>
           </div>
@@ -230,7 +230,7 @@ export default function CloudSetupWizard({ open, onClose }: { open: boolean; onC
                 <Check className="h-4 w-4" /> Cloud ready!
               </p>
               <p className="text-xs text-green-600/80 dark:text-green-500/80 mt-1">
-                Close this, then Connect in Settings → Multi-Device Sync — the URL + anon key are saved.
+                Close this, then Connect in Settings → Multi-Device Sync — the URL + publishable key are saved.
               </p>
               <button
                 onClick={persistAndClose}

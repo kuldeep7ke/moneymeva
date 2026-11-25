@@ -27,7 +27,7 @@ to this app. Ask me for any value you need. Do not commit .env.local.
 
 ## Ground rules for the agent
 
-1. NEVER commit, print, or copy `.env.local` contents elsewhere; never log the anon key.
+1. NEVER commit, print, or copy `.env.local` contents elsewhere; never log the publishable key.
 2. Do not edit `src/lib/env.ts` — overrides come exclusively from `.env.local`.
 3. Ask before overwriting an existing `.env.local`.
 4. If any step fails, jump to Troubleshooting; do not improvise schema changes.
@@ -49,13 +49,13 @@ Ask the user for:
 
 | Value | Format | Where the user finds it |
 |---|---|---|
-| Project URL | `https://<ref>.supabase.co` | Supabase Dashboard → Project Settings → API |
-| Anon public key | starts with `eyJ…` | same page ("anon public", NOT service_role) |
+| Project URL | `https://<ref>.supabase.co` | Supabase Dashboard → Project Settings → API Keys |
+| Publishable key | starts with `sb_publishable_...` | same page (**Publishable key** row, NOT service_role) |
 | App site URL | no trailing slash | where they will browse the app, e.g. `http://localhost:3000` |
 
 Validate before writing:
 ```bash
-# URL must match ^https:\/\/[a-z0-9-]+\.supabase\.co$ ; key must start with eyJ ; site URL must not end with /
+# URL must match ^https:\/\/[a-z0-9-]+\.supabase\.co$ ; key must start with sb_publishable_ (legacy anon keys starting with eyJ are still accepted) ; site URL must not end with /
 ```
 
 If the user has **no Supabase project yet**, walk them through SELF-HOSTING.md
@@ -68,7 +68,7 @@ Template (fill from Step 2):
 
 ```ini
 NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
 NEXT_PUBLIC_SITE_URL=
 ```
 
@@ -125,7 +125,7 @@ each owner manages their own project's variables.
 | `redirect_uri_mismatch` at Google | Site/Redirect URLs wrong — redo Step 4.3 exactly |
 | "Google sign-in is not enabled on this cloud project" | Provider not enabled — Step 4.3 first switch |
 | Login OK but no data syncs | Check schema ran (Step 4.1); check Settings shows their URL; check Sync status row |
-| RLS violation toast | They used service_role key or skipped schema — re-run schema.sql, use anon key |
+| RLS violation toast | They used service_role key or skipped schema — re-run schema.sql, use the publishable key |
 | Build fine but URL absent from `out/` | `.env.local` malformed (spaces/quotes) — rewrite plainly, rebuild |
 | OAuth loops back to moneymevaonline.pages.dev | Stale build — ensure `NEXT_PUBLIC_SITE_URL` set to THEIR url, rebuild |
 

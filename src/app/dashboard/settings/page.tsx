@@ -302,7 +302,7 @@ export default function SettingsPage() {
   const handleConnect = async () => {
     const url = syncUrl.trim().replace(/\/+$/, '');
     if (!/^https:\/\/[a-zA-Z0-9.-]+\.supabase\.co$/.test(url)) { setSyncError('Enter a valid Supabase project URL (e.g. https://xxxx.supabase.co)'); return; }
-    if (!syncKey.trim()) { setSyncError('Enter your anon key'); return; }
+    if (!syncKey.trim()) { setSyncError('Enter your publishable key'); return; }
     setSyncStatus('connecting');
     setSyncError('');
     dispatchSyncEvent({ status: 'started', message: 'Connecting to Supabase…' });
@@ -584,7 +584,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Anon key row */}
+                {/* Publishable key row */}
                 {!syncConnected && (
                   <div className="flex items-center gap-2">
                     <div className="flex-1 flex items-center gap-1.5 bg-white dark:bg-brand-dark rounded-lg border border-slate-200 dark:border-brand-muted px-3 py-2 text-sm min-w-0">
@@ -592,7 +592,7 @@ export default function SettingsPage() {
                         type="password"
                         value={syncKey}
                         onChange={e => { setSyncKey(e.target.value); setSyncError(''); }}
-                        placeholder="Anon key (eyJ…)"
+                        placeholder="Publishable key (sb_publishable_…)"
                         className="bg-transparent outline-none text-slate-600 dark:text-slate-300 flex-1 min-w-0"
                       />
                     </div>
@@ -604,7 +604,7 @@ export default function SettingsPage() {
                   <div className="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-xl p-3 text-xs space-y-1">
                     <p className="font-semibold text-sky-800 dark:text-sky-300">Shared database — no email/password</p>
                     <p className="text-sky-700/80 dark:text-sky-300/70">
-                      Every device that connects with this project URL + anon key shares the <strong>same</strong> data
+                      Every device that connects with this project URL + publishable key shares the <strong>same</strong> data
                       (older CouchDB-style sync). No accounts, no sign-in. For a brand-new project you must first create
                       the sync table — open the <strong>Setup Guide</strong> above and tap <strong>Copy SQL</strong>, then run it in
                       your project's SQL Editor (or run <span className="font-mono">supabase/schema.sql</span>) and Connect.
@@ -685,7 +685,7 @@ export default function SettingsPage() {
         <Reveal delay={300}>
           <div className="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-2xl p-4 space-y-2">
             <p className="text-xs text-sky-700 dark:text-sky-400 leading-relaxed">
-              Enter the same Supabase project URL and anon key on each device — every device that connects shares the <strong>same</strong> data (CouchDB-style sync, no accounts). No email/password or sign-in needed. For a brand-new project, run <code className="font-mono">supabase/schema.sql</code> in your project&apos;s SQL Editor once before connecting. Data syncs in real-time once connected.
+              Enter the same Supabase project URL and publishable key on each device — every device that connects shares the <strong>same</strong> data (CouchDB-style sync, no accounts). No email/password or sign-in needed. For a brand-new project, run <code className="font-mono">supabase/schema.sql</code> in your project&apos;s SQL Editor once before connecting. Data syncs in real-time once connected.
             </p>
           </div>
         </Reveal>

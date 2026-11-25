@@ -64,9 +64,9 @@ Open http://localhost:3000 — it works fully offline with no cloud setup. Stop 
 
 1. Go to https://supabase.com → **New project**
 2. Pick any name (e.g. `moneymeva`), set a **database password** (save it), choose a region near you
-3. When ready, open **Project Settings → API** and keep this tab open — you will need:
+3. When ready, open **Project Settings → API Keys** and keep this tab open — you will need:
    - **Project URL** — looks like `https://xxxxxxxxxxxx.supabase.co`
-   - **anon public key** — long `eyJ...` string
+   - **Publishable key** — string starting with `sb_publishable_...`, on the **Publishable key** row (never the `service_role` secret key). New Supabase projects use a publishable API key; legacy `anon public` keys still work until Supabase retires them.
 
 ---
 
@@ -94,14 +94,14 @@ Copy `.env.example` → `.env.local` and fill in:
 
 ```ini
 NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 | Variable | Purpose |
 |---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | Your project — used for login **and** sync |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public client key (safe to ship; RLS protects data) |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public client key (safe to ship; RLS protects data) |
 | `NEXT_PUBLIC_SITE_URL` | Where THIS app is served — used as the Google redirect target. No trailing slash. |
 
 Then rebuild (values are baked into the static export at build time):
@@ -124,7 +124,7 @@ You can also override the sync target per device later in **Settings → Multi-D
 
 On each phone/computer where you use the app:
 
-1. Open the app → Settings → Multi-Device Sync → paste the **same URL + anon key**
+1. Open the app → Settings → Multi-Device Sync → paste the **same URL + publishable key**
 2. Cloud connection starts automatically; check status under **Settings → Multi-Device Sync**
 3. **Sync Now** forces an immediate push/pull; edits made offline reconcile next time online
 
@@ -161,7 +161,7 @@ another deployment's variables (and nobody can touch yours).
 3. **Settings → Environment variables (Production)** → add the same three values
    from Step 5:
    - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    - `NEXT_PUBLIC_SITE_URL` = `https://<your-project>.pages.dev` (no trailing slash)
 4. **Deploy**, then open `https://<your-project>.pages.dev` — your app, your cloud
 5. Back in Supabase → Authentication → URL Configuration, allow the new address:
@@ -178,7 +178,7 @@ that publishes your copy to `https://<your-username>.github.io/<repo-name>/`:
    every push to `master`, or via **Run workflow**)
 2. Optional — for Google sign-in/sync on your copy, add repo variables/secrets
    (**Settings → Secrets and variables → Actions**):
-   - Secret `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` (your project's values from Step 5)
+   - Secret `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (your project's values from Step 5)
    - Variable `NEXT_PUBLIC_SITE_URL` = `https://<your-username>.github.io/<repo-name>`
    - Variable `NEXT_PUBLIC_ANNOUNCEMENTS_API` — optional; **leave unset** to keep
      announcements served through the shared Cloudflare edge-cached proxy (see
@@ -223,7 +223,7 @@ To bake your own cloud values in, build locally instead:
 ```bash
 docker build \
   --build-arg NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co \
-  --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ... \
+  --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_... \
   --build-arg NEXT_PUBLIC_SITE_URL=http://localhost:8080 \
   -t moneymeva . && docker run -d -p 8080:80 moneymeva
 ```
@@ -238,7 +238,7 @@ docker build \
 | Browser error `redirect_uri_mismatch` | Redirect URI typo | Must be exactly `https://<ref>.supabase.co/auth/v1/callback` |
 | After Google login you land on the wrong site | Wrong `NEXT_PUBLIC_SITE_URL` | Set it to the address you actually browse the app from, rebuild |
 | Login works but nothing syncs | `.env.local` missing/typo, or table not created | Re-run Step 3, confirm Step 5, check Settings → Sync status |
-| `new row violates row-level security policy` | Using a non-anon key or schema not applied | Re-run `schema.sql`; use the **anon** key only |
+| `new row violates row-level security policy` | Wrong client key or schema not applied | Re-run `schema.sql`; use the **publishable** key only |
 | Sync stops after laptop sleep | Socket dropped | Auto-reconnects within ~30 s, or tap **Sync Now** |
 
 ---
@@ -248,5 +248,5 @@ docker build \
 - Free Supabase tier: 500 MB database, 50k monthly active users — years of personal finance data
 - Back up anytime: Supabase Dashboard → Database → Backups, or export CSVs from the app
 - Deleting your Supabase project deletes cloud copies; device-local data survives
-- The anon key appearing in the app bundle is normal — it's a public key by design;
+- The publishable key appearing in the app bundle is normal — it's a public key by design;
   keeping the project URL private is what protects your data

@@ -1,5 +1,5 @@
 // Runtime config. Supabase URL/key are NOT baked in — this app is offline-first and
-// cloud sync is bring-your-own: set NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY
+// cloud sync is bring-your-own: set NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 // / NEXT_PUBLIC_SITE_URL in .env.local (see SELF-HOSTING.md) before building, or paste a
 // project in Settings → Multi-Device Sync at runtime. Announcement bins stay obfuscated.
 const _K = 'moneymeva';
@@ -17,7 +17,7 @@ function _d(e: string): string {
 }
 
 export const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-export const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+export const SUPABASE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || '';
 export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL ||
   'https://moneymevaonline.pages.dev'

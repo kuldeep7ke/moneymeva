@@ -92,12 +92,12 @@ Three transaction types: **Income · Expense · Investment**.
 
 ### 5.0 No account needed — how it works
 
-There is **no cloud account and no cloud password**. Sync uses a **link-only** shared database (the classic CouchDB-style model): any device that connects with the same project **URL + anon key** reads and writes the same rows.
+There is **no cloud account and no cloud password**. Sync uses a **link-only** shared database (the classic CouchDB-style model): any device that connects with the same project **URL + publishable key** reads and writes the same rows.
 
 | Secret | Where you get it | Used for |
 |---|---|---|
 | **Supabase URL** | Settings → Multi-Device Sync (or your app provider) | Finding the cloud database |
-| **Anon key** | Settings → Multi-Device Sync (or your app provider) | Unlocking the cloud database |
+| **Publishable key** | Settings → Multi-Device Sync (or your app provider) | Unlocking the cloud database |
 | **Google password** | Your Google account | Only the optional Google sign-in on the login screen — the app never sees it |
 
 Don't mix these up with:
@@ -106,18 +106,18 @@ Don't mix these up with:
 - Your **local profile password** — signs you into the app on this device.
 - Your **Google password** — Google sign-in only creates a *local* profile; the app never sees the password.
 
-> **Signed in with Google?** That just creates a local profile (and restores your previous local session) — it is **not** cloud sync. Connect in Settings → Multi-Device Sync with the URL + anon key to actually sync.
+> **Signed in with Google?** That just creates a local profile (and restores your previous local session) — it is **not** cloud sync. Connect in Settings → Multi-Device Sync with the URL + publishable key to actually sync.
 
 ### 5.1 First device — connect
 
 1. Open **Settings → Multi-Device Sync**.
-2. Paste your **Supabase URL** (e.g. `https://xxxxxxxxxxxx.supabase.co`) and the **anon key** (they may already be filled in if your app provider pre-configured the app).
+2. Paste your **Supabase URL** (e.g. `https://xxxxxxxxxxxx.supabase.co`) and the **publishable key** (they may already be filled in if your app provider pre-configured the app).
 3. Tap **Connect** — your local data is pushed to the cloud.
 
 ### 5.2 Add another device
 
 1. On the second device, open **Settings → Multi-Device Sync**.
-2. Paste the **same URL + anon key**.
+2. Paste the **same URL + publishable key**.
 3. Tap **Connect** — your cloud data appears on this device. From now on, changes sync live between devices.
 
 > Both devices now share the same rows. Edits on one appear on the other within seconds (realtime) or when you tap **Sync Now**.
@@ -127,17 +127,17 @@ Don't mix these up with:
 - Sync runs **automatically in the background** (live sync) while connected.
 - **Sync Now** forces an instant push + pull (useful after offline edits).
 - **Disconnect** stops syncing this device — your local data stays on the device.
-- To move to a new browser/device, just connect again with the same URL + anon key.
+- To move to a new browser/device, just connect again with the same URL + publishable key.
 
 ### 5.4 Privacy of cloud data
 
-- **Anyone with the project URL + anon key can read and write all the data in that database.** This is the same model as the original CouchDB sync — **don't share them publicly.**
-- The anon key is public by design (it's safe to ship in app bundles); the real protection is keeping the **URL private**.
+- **Anyone with the project URL + publishable key can read and write all the data in that database.** This is the same model as the original CouchDB sync — **don't share them publicly.**
+- The publishable key is public by design (it's safe to ship in app bundles); the real protection is keeping the **URL private**.
 - Your email address is **not** used for sync — nothing to reuse or leak.
 
 ### 5.5 Advanced: bring your own server
 
-- In **Settings → Multi-Device Sync** you can paste your **own Supabase URL + anon key** to use a completely different database (e.g., your own Supabase project). See `CLOUD-SYNC-GUIDE.md` for the full setup guide.
+- In **Settings → Multi-Device Sync** you can paste your **own Supabase URL + publishable key** to use a completely different database (e.g., your own Supabase project). See `CLOUD-SYNC-GUIDE.md` for the full setup guide.
 
 ---
 
@@ -174,11 +174,11 @@ Full policy: see **Terms** and **Privacy** pages in the app (`/terms`, `/privacy
 |---|---|
 | Forgot my PIN | Data is protected by your local profile; restore from your last **JSON backup** (Settings → Export/Import). |
 | App asks me to log in but I only used a PIN before | Create/log into your local profile again — PIN unlocks the app, the profile holds the data. |
-| Sync says "Connect" but I synced before | Enter the **same URL + anon key** and tap **Connect**. |
-| Data missing on another device | Confirm both devices use the **same URL + anon key**, and tap **Sync Now** on the device that has the data. |
+| Sync says "Connect" but I synced before | Enter the **same URL + publishable key** and tap **Connect**. |
+| Data missing on another device | Confirm both devices use the **same URL + publishable key**, and tap **Sync Now** on the device that has the data. |
 | Syncing but nothing changes | Check internet; tap **Sync Now**; wait a few seconds for real-time events. |
 | Want to stop syncing | **Disconnect** in Settings — local data is untouched. |
-| URL/key changed and sync broke | Reconnect with the current URL + anon key from Settings → Multi-Device Sync. |
+| URL/key changed and sync broke | Reconnect with the current URL + publishable key from Settings → Multi-Device Sync. |
 
 ---
 
@@ -188,10 +188,10 @@ Full policy: see **Terms** and **Privacy** pages in the app (`/terms`, `/privacy
 No. The app works fully offline without any account. Cloud sync is optional.
 
 **Q: Is my cloud data private?**
-It lives in a **shared link-only database** — anyone with the URL + anon key can read and write the rows (the classic CouchDB sync model). The protection is keeping the URL + key private; the anon key alone is useless without the URL.
+It lives in a **shared link-only database** — anyone with the URL + publishable key can read and write the rows (the classic CouchDB sync model). The protection is keeping the URL + key private; the publishable key alone is useless without the URL.
 
 **Q: Can I use my own database?**
-Yes — paste your own Supabase URL + anon key in Settings (advanced). See `CLOUD-SYNC-GUIDE.md`.
+Yes — paste your own Supabase URL + publishable key in Settings (advanced). See `CLOUD-SYNC-GUIDE.md`.
 
 **Q: What happens if I delete the app/clear browser data?**
 Local data is removed. If cloud sync was on, reinstall → Connect with the same URL + key → your data comes back.

@@ -9,7 +9,7 @@
 Device PouchDB (mm_pouch)
    │  push (upsert onConflict id)
    ▼
-Supabase sync_docs table  ←  open RLS (any device with anon key reads/writes)
+Supabase sync_docs table  ←  open RLS (any device with publishable key reads/writes)
    │  pull (select all) + realtime subscription
    ▼
 Device PouchDB (any device with the same URL + key)
@@ -59,7 +59,7 @@ ensureConnected()                             // reconnect if subscription dropp
 disconnectRemote()                            // stop realtime, keep local data
 ```
 
-- No authentication session — connect is just a client + ping. Every device sharing the URL + anon key reads/writes the same rows.
+- No authentication session — connect is just a client + ping. Every device sharing the URL + publishable key reads/writes the same rows.
 - Reconnect: 30s interval + `onRemoteChange` callback for live UI updates.
 
 ## Sync Modes
@@ -73,7 +73,7 @@ disconnectRemote()                            // stop realtime, keep local data
 ## Storage (localStorage)
 
 - `sb-<project-ref>-auth-token` — Supabase auth session (Supabase JS standard key)
-- `mm_pouch_url` / `mm_sync_key` — manual URL/key overrides (build-time defaults come from `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY`; empty by default)
+- `mm_pouch_url` / `mm_sync_key` — manual URL/key overrides (build-time defaults come from `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; empty by default)
 - `mm_pouch_urls` — last 5 URLs used (history dropdown)
 
 ## Schema & Security
@@ -85,7 +85,7 @@ disconnectRemote()                            // stop realtime, keep local data
   - `updated_at` timestamptz for conflict resolution (newer wins)
   - `deleted_at` timestamptz soft-delete marker
 - **Row-Level Security** (open policies — `using(true)` / `with check(true)`):
-  - Any device with the anon key can read and write all rows
+  - Any device with the publishable key can read and write all rows
   - Protection = keeping the project URL private (not baked into the app)
 - Realtime publication on `sync_docs` + `replica identity full`
 - Push uses `onConflict: 'id'` (single-column PK); the old composite `(user_id, id)` was removed by the migration
@@ -111,9 +111,9 @@ listenSyncEvents(fn)   // subscribe to status
 
 1. Create a Supabase project (free tier OK)
 2. Run `supabase/schema.sql` in SQL Editor (creates shared `sync_docs` + open RLS + realtime)
-3. Set `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` /
+3. Set `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` /
    `NEXT_PUBLIC_SITE_URL` in `.env.local` (see `.env.example`) and rebuild —
-   users paste the URL + anon key in Settings → Multi-Device Sync → Connect
+   users paste the URL + publishable key in Settings → Multi-Device Sync → Connect
 4. Users can override URL/key per device (bring-your-own-Supabase)
 
 See `SELF-HOSTING.md` for the full step-by-step guide and `CLOUD-SYNC-GUIDE.md`

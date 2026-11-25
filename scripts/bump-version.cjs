@@ -22,4 +22,15 @@ else { build++; }
 
 const next = `v${major}.${minor}.${patch}.${build}`;
 fs.writeFileSync(versionFile, `${next}\n`, 'utf-8');
-console.log(`Bumped: ${current} → ${next}`);
+
+// package.json drifted to its own number (7.1.13) because nothing kept it
+// pinned to VERSION; sync the semver part so tooling reads one truth.
+const pkgPath = path.join(__dirname, '..', 'package.json');
+const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+const semver = `${major}.${minor}.${patch}`;
+if (pkg.version !== semver) {
+  pkg.version = semver;
+  fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`, 'utf-8');
+}
+
+console.log(`Bumped: ${current} → ${next} (package.json → ${semver})`);

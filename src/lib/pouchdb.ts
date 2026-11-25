@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Capacitor } from '@capacitor/core';
-import { SUPABASE_URL, SUPABASE_ANON_KEY, BASE_PATH } from '@/lib/env';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, BASE_PATH } from '@/lib/env';
 import { dispatchSyncEvent } from './sync-notify';
 
 const LS_URL = 'mm_pouch_url';
@@ -36,7 +36,7 @@ function isLegacyCouchDbUrl(url: string): boolean {
 
 export function getConfig() {
   const envUrl = SUPABASE_URL || '';
-  const envKey = SUPABASE_ANON_KEY || '';
+  const envKey = SUPABASE_PUBLISHABLE_KEY || '';
   try {
     let url = localStorage.getItem(LS_URL) || '';
     if (isLegacyCouchDbUrl(url)) {
@@ -323,16 +323,16 @@ export async function connectRemote(url: string, key?: string): Promise<{ ok: bo
   disconnectRemote();
   if (!localDB) return { ok: false, error: 'Local database not initialized' };
   const cleanUrl = cleanSupabaseUrl(url);
-  const anonKey = (key || getConfig().key || '').trim();
-  if (!cleanUrl || !anonKey) return { ok: false, error: 'Supabase URL and anon key are required' };
+  const pubKey = (key || getConfig().key || '').trim();
+  if (!cleanUrl || !pubKey) return { ok: false, error: 'Supabase URL and publishable key are required' };
   try {
-    const client = createClient(cleanUrl, anonKey);
+    const client = createClient(cleanUrl, pubKey);
     const ping = await pingRemote(client);
     if (!ping.ok) return { ok: false, error: ping.error };
     supabase = client;
-    saveConfig(cleanUrl, anonKey);
+    saveConfig(cleanUrl, pubKey);
     subscribeRealtime(client);
-    startReconnectTimer(cleanUrl, anonKey);
+    startReconnectTimer(cleanUrl, pubKey);
     return { ok: true };
   } catch (err: any) {
     supabase = null;

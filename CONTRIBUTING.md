@@ -30,7 +30,7 @@ android/         — Capacitor Android project
 ```
 
 - All data is stored in IndexedDB via Dexie.js (`src/lib/db.ts` + `src/lib/store.ts`)
-- Auth is local (`src/lib/localAuth.ts`); cloud sync is optional and **link-only** (Supabase URL + anon key, no accounts) — see `docs/Sync.md`
+- Auth is local (`src/lib/localAuth.ts`); cloud sync is optional and **link-only** (Supabase URL + publishable key, no accounts) — see `docs/Sync.md`
 - Styling is Tailwind CSS v4
 
 ## Before You Code

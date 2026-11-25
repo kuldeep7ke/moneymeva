@@ -11,7 +11,7 @@
 | Sync | PouchDB ↔ Supabase | Shared database, link-only (no accounts) |
 | State | In-memory cache + Dexie | Instant reads |
 | Auth | Local profiles (localStorage) + optional Google OAuth → local profile | No cloud accounts |
-| Sync credential | Supabase anon key + project URL | Link-only shared `sync_docs` table |
+| Sync credential | Supabase publishable key + project URL | Link-only shared `sync_docs` table |
 | Security | One-time 4-digit PINs | Simple, auto-rotate |
 | Mobile | Capacitor v8 | Android APK |
 | Charts | Recharts | Lightweight |
@@ -37,7 +37,7 @@
   `sync_docs`** (fire-and-forget). `transitionId` links entity lifecycle mutations.
 - Soft-delete with `deletedAt` on all entities; Archive holds items for 30 days
   before permanent removal.
-- Sync is **link-only**: any device with the project URL + anon key reads/writes
+- Sync is **link-only**: any device with the project URL + publishable key reads/writes
   the shared `sync_docs` table (see `docs/Sync.md` and `supabase/schema.sql`).
 
 ## File Structure
@@ -63,6 +63,6 @@
 ## Runtime Config
 
 - Env via `.env.local` (build-time): `NEXT_PUBLIC_SUPABASE_URL`,
-  `NEXT_PUBLIC_SUPABASE_ANON_KEY` (empty by default — bring your own),
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (empty by default — bring your own),
   `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_ANNOUNCEMENTS_API` (edge proxy).
 - Users can override URL + key per device in Settings → Multi-Device Sync.

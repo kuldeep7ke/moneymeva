@@ -169,12 +169,12 @@ npm run android:apk         # Full build → version → gradle assembleDebug
 | `src/lib/sync-notify.ts` | Sync event dispatch system |
 | `src/components/InvestmentCalculator.tsx` | FD/SIP/RD/PPF investment calculator |
 | `src/lib/activityLog.ts` | Security + CRUD event history (localStorage) |
-| `src/lib/db.ts` | Dexie schema (all 12 tables including mutation_log) |
+| `src/lib/db.ts` | Dexie schema (all 11 tables including mutation_log) |
 | `src/app/dashboard/ledger/page.tsx` | Audit Ledger — full mutation log with filters |
 | `src/app/dashboard/accounts/page.tsx` | Bank/cash/revenue/expenses accounts with month filter |
 | `src/components/CloudSetupWizard.tsx` | Cloud sync setup wizard (auto-checking 4 steps) |
 | `scripts/serve.cjs` | Cross-platform static file server for out/ |
-| `SELF-HOSTING.md` | Self-host guide: own Supabase project via `.env.local` overrides (NEXT_PUBLIC_SUPABASE_URL/ANON_KEY/SITE_URL), Google OAuth setup, multi-device sync |
+| `SELF-HOSTING.md` | Self-host guide: own Supabase project via `.env.local` overrides (NEXT_PUBLIC_SUPABASE_URL/PUBLISHABLE_KEY/SITE_URL), Google OAuth setup, multi-device sync |
 | `src/lib/env.ts` | Runtime config: Supabase URL/key EMPTY by default (bring-your-own via NEXT_PUBLIC_* env vars or Settings → Sync), SITE_URL, jsonbin bin IDs, `ANNOUNCEMENTS_API` (edge-cached proxy URL, decoupled from SITE_URL) |
 | `functions/api/announcements.js` | Cloudflare Pages Function: edge-cached jsonbin proxy (TTL 3 h / `TTL_MINUTES = 180`), serves every platform incl. Android APK |
 | `docs/ANNOUNCEMENTS-EDGE-PROXY-GUIDE.md` | Reusable jsonbin quota-proxy playbook: how the app + each platform consumes it, setup + reuse checklist for other apps |
