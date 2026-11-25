@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { ArrowUpCircle, ArrowDownCircle, TrendingUp, Target, Download, Clock, Trash2 } from 'lucide-react';
@@ -104,7 +105,7 @@ export default function SummaryPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-lg md:text-3xl font-bold text-slate-900 dark:text-slate-100">Monthly Summary</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm hidden md:block">Your P&L, goals, and savings at a glance.</p>
+            <p className="text-slate-600 dark:text-slate-400 text-sm hidden md:block">Your P&L, goals, and savings at a glance.</p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="gap-1" onClick={() => exportSummaryPDF(monthlyData)}><Download className="h-4 w-4" /> PDF</Button>
@@ -158,7 +159,10 @@ export default function SummaryPage() {
             <Target className="h-5 w-5 text-brand dark:text-brand-secondary" />
           </div>
           {goals.length === 0 ? (
-            <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">No goals set yet. Add goals in Settings.</p>
+            <div className="text-center py-8">
+              <p className="text-sm text-slate-400 dark:text-slate-500 mb-3">No goals set yet.</p>
+              <Link href="/dashboard/savings" className="text-sm font-semibold text-brand dark:text-brand-secondary underline underline-offset-4">Create your first goal</Link>
+            </div>
           ) : (
             <div className="space-y-6">
               {goals.map(g => {
@@ -219,13 +223,13 @@ export default function SummaryPage() {
                               <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-medium uppercase shrink-0",
                                 item.type === 'pin_used' ? 'bg-brand-secondary dark:bg-brand-muted/30 text-brand dark:text-brand-secondary' :
                                 item.type === 'login' ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400' :
-                                item.type === 'login_failed' ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' :
+                                item.type === 'login_failed' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400' :
                                 item.type === 'logout' ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400' :
                                 item.type === 'session_lock' ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400' :
-                                item.type === 'session_unlock' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400' :
+                                item.type === 'session_unlock' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
                                 item.type === 'register' ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400' :
                                 item.type === 'auto_lock_off' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400' :
-                                'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                                'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                               )}>{item.type.replace(/_/g, ' ')}</span>
                               <span className="text-slate-500 dark:text-slate-400 truncate min-w-0">{item.detail}</span>
                             </>

@@ -124,7 +124,7 @@ export default function InvestmentCalculator({ onClose, onApply }: Props) {
   const activeTab = TABS.find(t => t.key === tab);
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[60] overflow-y-auto">
+    <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-32" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start justify-center z-[60] overflow-y-auto">
       <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full max-h-[90vh] flex flex-col shadow-2xl mt-20 sm:mt-28 mx-4">
         
         {/* Header */}
@@ -134,7 +134,7 @@ export default function InvestmentCalculator({ onClose, onApply }: Props) {
               <Calculator className="h-5 w-5 text-brand" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">Investment Calculator</h3>
+              <h3 id="mm-dialog-32" className="text-base font-bold text-slate-900 dark:text-slate-100">Investment Calculator</h3>
               <p className="text-[11px] text-slate-400 dark:text-slate-500">{activeTab?.desc}</p>
             </div>
           </div>
@@ -282,8 +282,8 @@ function NumInput({ label, value, onChange, placeholder, step, autoFocus }: { la
 function SelectInput({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
   return (
     <div>
-      <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1.5">{label}</label>
-      <select value={value} onChange={e => onChange(e.target.value)}
+      <label htmlFor="mm-label" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1.5">{label}</label>
+      <select id="mm-label" value={value} onChange={e => onChange(e.target.value)}
         className="w-full px-3 py-2.5 rounded-xl border border-slate-200 dark:border-brand-muted dark:bg-brand-dark text-slate-800 dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand/60 text-sm transition-all appearance-none bg-no-repeat bg-right-3"
         style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`, backgroundPosition: 'right 10px center', backgroundSize: '14px' }}>
         {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}

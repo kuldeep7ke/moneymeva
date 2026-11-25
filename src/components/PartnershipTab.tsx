@@ -177,7 +177,7 @@ export default function PartnershipTab() {
       <Reveal>
         <div className="flex items-center justify-between">
           <p className="text-slate-500 dark:text-slate-400 text-sm">{t('ps.subtitle')}</p>
-          <button onClick={() => { setEditingId(null); setForm(emptyForm()); setShowPsModal(true); }} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-orange-600 transition-colors active:scale-95 shrink-0" type="button" title={t('ps.add')}>
+          <button onClick={() => { setEditingId(null); setForm(emptyForm()); setShowPsModal(true); }} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-brand-hover transition-colors active:scale-95 shrink-0" type="button" title={t('ps.add')}>
             <Plus className="h-5 w-5" />
           </button>
         </div>
@@ -311,9 +311,9 @@ export default function PartnershipTab() {
 
       {/* Add/Edit Partnership Modal */}
       {showPsModal && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-33" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full p-6 shadow-2xl my-4">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">{editingId ? t('ps.editTitle') : t('ps.addTitle')}</h2>
+            <h2 id="mm-dialog-33" className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">{editingId ? t('ps.editTitle') : t('ps.addTitle')}</h2>
             <form onSubmit={handleSavePs} className="space-y-4">
               <input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-base" placeholder={t('ps.titlePlaceholder')} />
@@ -333,27 +333,27 @@ export default function PartnershipTab() {
               {form.kind === 'farm' ? (
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.crop')}</label>
-                    <input value={form.crop} onChange={e => setForm({ ...form, crop: e.target.value })}
+                    <label htmlFor="mm-t-works-crop" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.crop')}</label>
+                    <input id="mm-t-works-crop" value={form.crop} onChange={e => setForm({ ...form, crop: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" placeholder={t('works.cropPlaceholder')} />
                   </div>
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.season')}</label>
-                    <select value={form.season} onChange={e => setForm({ ...form, season: e.target.value })}
+                    <label htmlFor="mm-t-works-season" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.season')}</label>
+                    <select id="mm-t-works-season" value={form.season} onChange={e => setForm({ ...form, season: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm">
                       {SEASONS.map(s => <option key={s} value={s}>{t(`works.season.${s}`)}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.year')}</label>
-                    <input type="number" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}
+                    <label htmlFor="mm-t-works-year" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.year')}</label>
+                    <input id="mm-t-works-year" type="number" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" />
                   </div>
                 </div>
               ) : (
                 <div>
-                  <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.year')}</label>
-                  <input type="number" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}
+                  <label htmlFor="mm-t-works-year-2" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.year')}</label>
+                  <input id="mm-t-works-year-2" type="number" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" />
                 </div>
               )}
@@ -416,13 +416,13 @@ export default function PartnershipTab() {
               </div>
 
               <div>
-                <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.notes')}</label>
-                <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                <label htmlFor="mm-t-works-notes" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.notes')}</label>
+                <input id="mm-t-works-notes" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" placeholder={t('works.notesPlaceholder')} />
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="ghost" size="sm" onClick={() => { setShowPsModal(false); setEditingId(null); setForm(emptyForm()); }}>{t('common.cancel')}</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => { setShowPsModal(false); setEditingId(null); setForm(emptyForm()); }}>{t('common.cancel')}</Button>
                 <Button type="submit" size="sm">{editingId ? t('common.save') : t('ps.create')}</Button>
               </div>
             </form>
@@ -436,30 +436,30 @@ export default function PartnershipTab() {
         if (!ps) return null;
         const memberOptions = ps.members.filter(m => (m.name || '').trim()).map(m => ({ value: payerValueForMember(m), label: getPartnerNameSafe(m.partyId) || m.name }));
         return (
-          <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-34" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
             <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl my-4">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">{t('ps.addEntryTitle')}</h2>
+              <h2 id="mm-dialog-34" className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">{t('ps.addEntryTitle')}</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{ps.title}</p>
               <form onSubmit={handleAddEntry} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('ps.typeLabel')}</label>
-                    <select value={entryForm.type} onChange={e => setEntryForm({ ...entryForm, type: e.target.value as any })}
+                    <label htmlFor="mm-t-ps-typelabel" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('ps.typeLabel')}</label>
+                    <select id="mm-t-ps-typelabel" value={entryForm.type} onChange={e => setEntryForm({ ...entryForm, type: e.target.value as any })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                       <option value="expense">{t('ps.expense')}</option>
                       <option value="income">{t('ps.income')}</option>
                     </select>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('works.amountLabel')}</label>
-                    <input required type="number" min="0" step="0.01" value={entryForm.amount} onChange={e => setEntryForm({ ...entryForm, amount: e.target.value })}
+                    <label htmlFor="mm-t-works-amountlabel" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('works.amountLabel')}</label>
+                    <input id="mm-t-works-amountlabel" required type="number" min="0" step="0.01" value={entryForm.amount} onChange={e => setEntryForm({ ...entryForm, amount: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="₹ 0" />
                   </div>
                 </div>
                 {entryForm.type === 'expense' && (
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('ps.paidBy')}</label>
-                    <select required value={entryForm.paidByPartyId} onChange={e => setEntryForm({ ...entryForm, paidByPartyId: e.target.value })}
+                    <label htmlFor="mm-t-ps-paidby" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('ps.paidBy')}</label>
+                    <select id="mm-t-ps-paidby" required value={entryForm.paidByPartyId} onChange={e => setEntryForm({ ...entryForm, paidByPartyId: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                       <option value="">{t('ps.selectPayer')}</option>
                       {memberOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -469,13 +469,13 @@ export default function PartnershipTab() {
                 )}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('works.dateLabel')}</label>
-                    <input required type="date" max={todayStr()} value={entryForm.date} onChange={e => setEntryForm({ ...entryForm, date: e.target.value })}
+                    <label htmlFor="mm-t-works-datelabel" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('works.dateLabel')}</label>
+                    <input id="mm-t-works-datelabel" required type="date" max={todayStr()} value={entryForm.date} onChange={e => setEntryForm({ ...entryForm, date: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('ps.descriptionLabel')}</label>
-                    <input required value={entryForm.description} onChange={e => setEntryForm({ ...entryForm, description: e.target.value })}
+                    <label htmlFor="mm-t-ps-descriptionlabel" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('ps.descriptionLabel')}</label>
+                    <input id="mm-t-ps-descriptionlabel" required value={entryForm.description} onChange={e => setEntryForm({ ...entryForm, description: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder={t('ps.descriptionPlaceholder')} />
                   </div>
                 </div>
@@ -485,7 +485,7 @@ export default function PartnershipTab() {
                   <span className="text-sm text-slate-600 dark:text-slate-400">{t('ps.alsoLedger')}</span>
                 </label>
                 <div className="flex items-center justify-end gap-2 pt-2">
-                  <Button variant="ghost" size="sm" onClick={() => { setEntryFor(null); setEntryForm(emptyEntry); }}>{t('common.cancel')}</Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => { setEntryFor(null); setEntryForm(emptyEntry); }}>{t('common.cancel')}</Button>
                   <Button type="submit" size="sm">{t('ps.saveEntry')}</Button>
                 </div>
               </form>

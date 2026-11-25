@@ -55,7 +55,7 @@ export default function CreditAlertModal() {
   if (!show || alerts.length === 0) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
+    <div role="dialog" aria-modal="true" aria-label="Credit alerts" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
       <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-amber-300 dark:border-amber-700">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -67,7 +67,7 @@ export default function CreditAlertModal() {
               <p className="text-xs text-slate-500 dark:text-slate-400">{t('credit.needsAttention', { n: alerts.length })}</p>
             </div>
           </div>
-          <button onClick={dismiss} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+          <button onClick={dismiss} aria-label="Close alert" className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
             <X className="h-4 w-4 text-slate-400" />
           </button>
         </div>

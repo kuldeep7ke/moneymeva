@@ -188,7 +188,7 @@ export default function AboutPage() {
             <Link href="/dashboard/privacy" className="text-sm text-brand hover:text-brand-secondary dark:text-brand-secondary dark:hover:text-brand transition-colors font-medium">
               Privacy Policy
             </Link>
-            <span className="text-slate-300 dark:text-slate-600">|</span>
+            <span className="text-slate-300 dark:text-slate-500">|</span>
             <Link href="/dashboard/terms" className="text-sm text-brand hover:text-brand-secondary dark:text-brand-secondary dark:hover:text-brand transition-colors font-medium">
               Terms of Service
             </Link>

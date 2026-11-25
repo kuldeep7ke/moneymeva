@@ -99,6 +99,20 @@ function cleanSupabaseUrl(url: string): string {
   return url.trim().replace(/\/+$/, '');
 }
 
+// Each createClient() spawns its own GoTrueClient, which logs "Multiple
+// GoTrueClient instances detected" and keeps its own token-refresh timer. The
+// reconnect timer and the connection checks used to build one per call, so a
+// single session could leak dozens of them. Reuse one client per credentials.
+let cachedClient: { url: string; key: string; client: any } | null = null;
+function getSupabaseClient(url: string, key: string) {
+  const cleanUrl = cleanSupabaseUrl(url);
+  const trimmedKey = (key || '').trim();
+  if (cachedClient && cachedClient.url === cleanUrl && cachedClient.key === trimmedKey) return cachedClient.client;
+  const client = createClient(cleanUrl, trimmedKey);
+  cachedClient = { url: cleanUrl, key: trimmedKey, client };
+  return client;
+}
+
 async function pingRemote(client: any): Promise<{ ok: boolean; error?: string }> {
   try {
     const { error } = await client.from(SYNC_TABLE).select('id').limit(1);
@@ -133,7 +147,7 @@ function startReconnectTimer(url: string, key: string) {
   reconnectTimer = setInterval(async () => {
     if (supabase) return;
     try {
-      const client = createClient(cleanSupabaseUrl(url), key);
+      const client = getSupabaseClient(url, key);
       const { ok } = await pingRemote(client);
       if (ok) {
         supabase = client;
@@ -170,7 +184,7 @@ export async function signInWithGoogle(): Promise<{ ok: boolean; error?: string;
     return { ok: false, error: 'Cloud sync is not configured yet. Create your own free Supabase project (guide: SELF-HOSTING.md in the repo) and connect it in Settings → Multi-Device Sync.' };
   }
   try {
-    const client = createClient(cleanSupabaseUrl(cfg.url), cfg.key.trim());
+    const client = getSupabaseClient(cfg.url, cfg.key);
     const isNative = Capacitor.isNativePlatform();
     // Return to the SAME site the user is on (Cloudflare, GitHub Pages, localhost…)
     // so the cloud session is stored on the right origin and survives reloads.
@@ -273,7 +287,7 @@ export async function getStoredCloudUser(): Promise<{ email: string; fullName: s
   const cfg = getConfig();
   if (!cfg.url || !cfg.key) return null;
   try {
-    const client = createClient(cleanSupabaseUrl(cfg.url), cfg.key.trim());
+    const client = getSupabaseClient(cfg.url, cfg.key);
     const { data } = await client.auth.getUser();
     const user = data?.user;
     if (!user?.email) return null;
@@ -301,7 +315,7 @@ export async function getOAuthSessionUser(url?: string): Promise<{ email: string
   }
   console.debug('[OAuth] not in storage or URL — polling client session');
   try {
-    const client = createClient(cleanSupabaseUrl(cfg.url), cfg.key.trim());
+    const client = getSupabaseClient(cfg.url, cfg.key);
     let user: any = null;
     for (let i = 0; i < 15; i++) {
       const { data } = await client.auth.getSession();
@@ -326,7 +340,7 @@ export async function connectRemote(url: string, key?: string): Promise<{ ok: bo
   const pubKey = (key || getConfig().key || '').trim();
   if (!cleanUrl || !pubKey) return { ok: false, error: 'Supabase URL and publishable key are required' };
   try {
-    const client = createClient(cleanUrl, pubKey);
+    const client = getSupabaseClient(cleanUrl, pubKey);
     const ping = await pingRemote(client);
     if (!ping.ok) return { ok: false, error: ping.error };
     supabase = client;
@@ -488,7 +502,7 @@ export async function checkConnection(): Promise<boolean> {
   if (!cfg.url || !cfg.key) return false;
   if (connected()) return true;
   try {
-    const client = createClient(cleanSupabaseUrl(cfg.url), cfg.key.trim());
+    const client = getSupabaseClient(cfg.url, cfg.key);
     const { ok } = await pingRemote(client);
     if (ok) {
       supabase = client;

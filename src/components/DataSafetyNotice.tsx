@@ -53,7 +53,7 @@ export default function DataSafetyNotice() {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[120] p-4">
+    <div role="dialog" aria-modal="true" aria-label="Data safety notice" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[120] p-4">
       <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -62,7 +62,7 @@ export default function DataSafetyNotice() {
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Data Safety Notice</h3>
           </div>
-          <button onClick={dismiss} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+          <button onClick={dismiss} aria-label="Dismiss notice" className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
             <X className="h-4 w-4 text-slate-400" />
           </button>
         </div>

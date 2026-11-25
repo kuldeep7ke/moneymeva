@@ -310,22 +310,22 @@ function LoginForm() {
         <div className="p-10 pt-6 space-y-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Email</label>
+            <label htmlFor="login-email" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
-              <input required type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              <input required id="login-email" autoComplete="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="you@example.com" />
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Password</label>
+            <label htmlFor="login-password" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
-              <input required type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
+              <input required id="login-password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
                 onFocus={() => setPasswordFocused(true)}
                 onBlur={() => setPasswordFocused(false)}
                 className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="••••••••" />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+              <button type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword} onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
@@ -351,12 +351,12 @@ function LoginForm() {
           )}
           {mode === 'register' && (
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Confirm Password</label>
+              <label htmlFor="login-confirm" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Confirm Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
-                <input required type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                <input required id="login-confirm" autoComplete="new-password" type={showConfirmPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
                   className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="••••••••" />
-                <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                <button type="button" aria-label={showConfirmPassword ? 'Hide password' : 'Show password'} aria-pressed={showConfirmPassword} onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                   {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
@@ -406,32 +406,32 @@ function LoginForm() {
 
       {/* Forgot Password Modal */}
       {forgotStep !== 'idle' && (
-        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={handleForgotCancel}>
+        <div role="dialog" aria-modal="true" aria-label="Reset password" className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={handleForgotCancel}>
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-            <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-6 py-8 text-center">
+            <div className="bg-gradient-to-r from-amber-700 to-orange-800 px-6 py-8 text-center">
               <div className="mx-auto w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mb-4">
                 {forgotStep === 'email' ? <Mail className="h-8 w-8 text-white" /> : forgotStep === 'pin' ? <ShieldQuestion className="h-8 w-8 text-white" /> : <KeyRound className="h-8 w-8 text-white" />}
               </div>
               <h3 className="text-2xl font-bold text-white">
                 {forgotStep === 'email' ? 'Reset Password' : forgotStep === 'pin' ? 'Enter PIN' : 'New Password'}
               </h3>
-              <p className="text-amber-100 text-sm mt-2">
+              <p className="text-white text-sm mt-2">
                 {forgotStep === 'email' ? 'Enter your registered email' : forgotStep === 'pin' ? `Enter an unused PIN (${getRemainingPins()} remaining)` : 'Choose a new password'}
               </p>
             </div>
             <div className="p-6 space-y-4">
               {forgotStep === 'email' && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
-                  <input type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)}
+                  <label htmlFor="mm-email" className="text-sm font-medium text-slate-700 dark:text-slate-300">Email</label>
+                  <input id="mm-email" type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand bg-transparent text-slate-700 dark:text-slate-300"
                     placeholder="you@example.com" />
                 </div>
               )}
               {forgotStep === 'pin' && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">PIN</label>
-                  <input type="text" value={forgotPin} onChange={e => setForgotPin(e.target.value.replace(/\D/g, '').slice(0, 4))} maxLength={4}
+                  <label htmlFor="mm-pin" className="text-sm font-medium text-slate-700 dark:text-slate-300">PIN</label>
+                  <input id="mm-pin" type="text" value={forgotPin} onChange={e => setForgotPin(e.target.value.replace(/\D/g, '').slice(0, 4))} maxLength={4}
                     className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand bg-transparent text-slate-700 dark:text-slate-300 text-center text-2xl tracking-[0.5em]"
                     placeholder="• • • •" />
                 </div>
@@ -439,21 +439,21 @@ function LoginForm() {
               {forgotStep === 'reset' && (
                 <div className="space-y-3">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">New Password</label>
+                    <label htmlFor="forgot-new-password" className="text-sm font-medium text-slate-700 dark:text-slate-300">New Password</label>
                     <div className="relative">
-                      <input type={showForgotPassword ? 'text' : 'password'} value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)}
+                      <input id="forgot-new-password" autoComplete="new-password" type={showForgotPassword ? 'text' : 'password'} value={forgotNewPassword} onChange={e => setForgotNewPassword(e.target.value)}
                         className="w-full px-4 py-2.5 pr-10 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand bg-transparent text-slate-700 dark:text-slate-300" />
-                      <button type="button" onClick={() => setShowForgotPassword(!showForgotPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                      <button type="button" aria-label={showForgotPassword ? 'Hide password' : 'Show password'} aria-pressed={showForgotPassword} onClick={() => setShowForgotPassword(!showForgotPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                         {showForgotPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Confirm New Password</label>
+                    <label htmlFor="forgot-confirm-password" className="text-sm font-medium text-slate-700 dark:text-slate-300">Confirm New Password</label>
                     <div className="relative">
-                      <input type={showForgotConfirmPassword ? 'text' : 'password'} value={forgotConfirmPassword} onChange={e => setForgotConfirmPassword(e.target.value)}
+                      <input id="forgot-confirm-password" autoComplete="new-password" type={showForgotConfirmPassword ? 'text' : 'password'} value={forgotConfirmPassword} onChange={e => setForgotConfirmPassword(e.target.value)}
                         className="w-full px-4 py-2.5 pr-10 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand bg-transparent text-slate-700 dark:text-slate-300" />
-                      <button type="button" onClick={() => setShowForgotConfirmPassword(!showForgotConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                      <button type="button" aria-label={showForgotConfirmPassword ? 'Hide password' : 'Show password'} aria-pressed={showForgotConfirmPassword} onClick={() => setShowForgotConfirmPassword(!showForgotConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                         {showForgotConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>

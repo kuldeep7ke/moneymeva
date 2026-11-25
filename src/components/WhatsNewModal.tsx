@@ -29,9 +29,9 @@ export default function WhatsNewModal() {
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
+    <div role="dialog" aria-modal="true" aria-labelledby="whats-new-title" className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl max-w-md w-full mx-4 p-6 border border-slate-200 dark:border-slate-700">
-        <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">
+        <h2 id="whats-new-title" className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">
           What&apos;s New in Money Meva
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">

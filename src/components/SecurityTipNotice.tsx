@@ -80,14 +80,14 @@ export default function SecurityTipNotice() {
   const alreadySetup = hasPins() && arePinsShown();
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[120] p-4">
+    <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-36" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[120] p-4">
       <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-brand/10">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-full bg-brand-secondary dark:bg-brand-muted/30">
               <Icon className="h-5 w-5 text-brand dark:text-brand-secondary" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{tip.title}</h3>
+            <h3 id="mm-dialog-36" className="text-lg font-bold text-slate-900 dark:text-slate-100">{tip.title}</h3>
           </div>
           <button onClick={dismiss} className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
             <X className="h-4 w-4 text-slate-400" />

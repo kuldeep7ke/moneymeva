@@ -232,7 +232,7 @@ export default function PartnersPage() {
               <p className="text-slate-500 dark:text-slate-400 hidden md:block">Track your joint ventures and project budgets.</p>
             </div>
             {pTab === 'accounts' && (
-              <button onClick={() => { setEditingId(null); setShowAddModal(true); }} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-orange-600 transition-colors active:scale-95 shrink-0" type="button" title="Add Party Account">
+              <button onClick={() => { setEditingId(null); setShowAddModal(true); }} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-brand-hover transition-colors active:scale-95 shrink-0" type="button" title="Add Party Account">
                 <Plus className="h-5 w-5" />
               </button>
             )}
@@ -243,10 +243,10 @@ export default function PartnersPage() {
         {partners.length > 0 && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-gradient-to-br from-brand to-purple-600 p-5 rounded-2xl shadow-lg text-white">
-                <p className="text-sm opacity-80 mb-1">Total Invested</p>
+              <div className="bg-brand p-5 rounded-2xl shadow-lg text-white">
+                <p className="text-sm mb-1">Total Invested</p>
                 <p className="text-2xl font-bold">{formatCurrency(totalInvested)}</p>
-                <p className="text-xs opacity-60 mt-1">Across {partners.length} partner account{partners.length > 1 ? 's' : ''}</p>
+                <p className="text-xs mt-1">Across {partners.length} partner account{partners.length > 1 ? 's' : ''}</p>
               </div>
               <div className="bg-white dark:bg-[#2A2522] p-5 rounded-2xl border border-slate-200 dark:border-brand-muted shadow-sm">
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Net P&L</p>
@@ -344,7 +344,7 @@ export default function PartnersPage() {
                     <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Credit Tally</p>
                     <CreditCard className="h-3 w-3 text-orange-500" />
                     {partner.creditStats?.limitState === 'reached' && (
-                      <span className="ml-auto px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-[10px] font-bold text-red-600 dark:text-red-400">{t('credit.limitReached')}</span>
+                      <span className="ml-auto px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-900/40 text-[10px] font-bold text-red-700 dark:text-red-400">{t('credit.limitReached')}</span>
                     )}
                     {partner.creditStats?.limitState === 'near' && (
                       <span className="ml-auto px-1.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/40 text-[10px] font-bold text-amber-600 dark:text-amber-500">{t('credit.nearLimit')}</span>
@@ -392,16 +392,16 @@ export default function PartnersPage() {
 
       {/* Add Partner Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-13" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full p-6 shadow-2xl my-4">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">{editingId ? 'Edit Party' : 'New Party'}</h2>
+            <h2 id="mm-dialog-13" className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">{editingId ? 'Edit Party' : 'New Party'}</h2>
             <form onSubmit={handleAdd} className="space-y-4">
               <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-base" placeholder="Account name" />
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Group</label>
-                  <select value={form.group} onChange={e => { const newGroup = e.target.value as PartyGroup; setForm({ ...form, group: newGroup, type: PARTY_TYPES_BY_GROUP[newGroup]?.[0]?.value || 'other' }); }}
+                  <label htmlFor="mm-group" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Group</label>
+                  <select id="mm-group" value={form.group} onChange={e => { const newGroup = e.target.value as PartyGroup; setForm({ ...form, group: newGroup, type: PARTY_TYPES_BY_GROUP[newGroup]?.[0]?.value || 'other' }); }}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm">
                     {PARTY_GROUPS.map(g => (
                       <option key={g.value} value={g.value}>{g.label}</option>
@@ -409,8 +409,8 @@ export default function PartnersPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Type</label>
-                  <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}
+                  <label htmlFor="mm-type" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Type</label>
+                  <select id="mm-type" value={form.type} onChange={e => setForm({ ...form, type: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm">
                     {(PARTY_TYPES_BY_GROUP[form.group] || PARTY_TYPES_BY_GROUP.personal).map(t => (
                       <option key={t.value} value={t.value}>{t.label}</option>
@@ -419,30 +419,30 @@ export default function PartnersPage() {
                 </div>
               </div>
               <div>
-                <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Initial Investment</label>
-                <input type="number" min="0" value={form.initialInvestment} onChange={e => setForm({ ...form, initialInvestment: e.target.value })}
+                <label htmlFor="mm-initial-investment" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Initial Investment</label>
+                <input id="mm-initial-investment" type="number" min="0" value={form.initialInvestment} onChange={e => setForm({ ...form, initialInvestment: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="₹0" />
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Credit Limit (optional)</label>
-                  <input type="number" min="0" value={form.creditLimit} onChange={e => setForm({ ...form, creditLimit: e.target.value })}
+                  <label htmlFor="mm-credit-limit-optional" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Credit Limit (optional)</label>
+                  <input id="mm-credit-limit-optional" type="number" min="0" value={form.creditLimit} onChange={e => setForm({ ...form, creditLimit: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="₹10,000 default" />
                   <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-1">{t('credit.alertHint')}</p>
                 </div>
                 <div>
-                  <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Settle Within (days)</label>
-                  <input type="number" min="1" value={form.creditSettleDays} onChange={e => setForm({ ...form, creditSettleDays: e.target.value })}
+                  <label htmlFor="mm-settle-within-days" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Settle Within (days)</label>
+                  <input id="mm-settle-within-days" type="number" min="1" value={form.creditSettleDays} onChange={e => setForm({ ...form, creditSettleDays: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="30 days default" />
                 </div>
               </div>
               <div>
-                <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Description</label>
-                <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                <label htmlFor="mm-description" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">Description</label>
+                <input id="mm-description" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="Optional notes..." />
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="ghost" size="sm" onClick={() => { setShowAddModal(false); setEditingId(null); setForm({ name: '', type: 'other', group: 'personal', description: '', budgetWindowStart: '', budgetWindowEnd: '', initialInvestment: '', creditLimit: '', creditSettleDays: '' }); }}>Cancel</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => { setShowAddModal(false); setEditingId(null); setForm({ name: '', type: 'other', group: 'personal', description: '', budgetWindowStart: '', budgetWindowEnd: '', initialInvestment: '', creditLimit: '', creditSettleDays: '' }); }}>Cancel</Button>
                 <Button type="submit" size="sm">{editingId ? 'Save' : 'Create'}</Button>
               </div>
             </form>
@@ -452,45 +452,45 @@ export default function PartnersPage() {
 
       {/* Add Transaction Modal */}
       {showTxModal && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-14" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full p-8 shadow-2xl my-4">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Add Partner Transaction</h2>
+            <h2 id="mm-dialog-14" className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Add Partner Transaction</h2>
             <form onSubmit={handleAddTx} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Type</label>
-                  <select value={txForm.type} onChange={e => setTxForm({ ...txForm, type: e.target.value as any })}
+                  <label htmlFor="mm-type-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Type</label>
+                  <select id="mm-type-2" value={txForm.type} onChange={e => setTxForm({ ...txForm, type: e.target.value as any })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                     <option value="income">Income</option>
                     <option value="expense">Expense</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount</label>
-                  <input required type="number" min="0" step="0.01" value={txForm.amount} onChange={e => setTxForm({ ...txForm, amount: e.target.value })}
+                  <label htmlFor="mm-amount" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount</label>
+                  <input id="mm-amount" required type="number" min="0" step="0.01" value={txForm.amount} onChange={e => setTxForm({ ...txForm, amount: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="₹ 0" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Custom Category</label>
-                  <input required value={txForm.category} onChange={e => setTxForm({ ...txForm, category: e.target.value })}
+                  <label htmlFor="mm-custom-category" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Custom Category</label>
+                  <input id="mm-custom-category" required value={txForm.category} onChange={e => setTxForm({ ...txForm, category: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="Enter category" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
-                  <input required type="date" max={todayStr()} value={txForm.date} onChange={e => setTxForm({ ...txForm, date: e.target.value })}
+                  <label htmlFor="mm-date" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
+                  <input id="mm-date" required type="date" max={todayStr()} value={txForm.date} onChange={e => setTxForm({ ...txForm, date: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Description</label>
-                <input required value={txForm.description} onChange={e => setTxForm({ ...txForm, description: e.target.value })}
+                <label htmlFor="mm-description-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Description</label>
+                <input id="mm-description-2" required value={txForm.description} onChange={e => setTxForm({ ...txForm, description: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="Transaction details" />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Account</label>
-                <select value={txForm.account} onChange={e => setTxForm({ ...txForm, account: e.target.value as any })}
+                <label htmlFor="mm-account" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Account</label>
+                <select id="mm-account" value={txForm.account} onChange={e => setTxForm({ ...txForm, account: e.target.value as any })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                   <option value="cash">Cash</option>
                   <option value="bank">Bank</option>
@@ -505,7 +505,7 @@ export default function PartnersPage() {
                 )}
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="ghost" size="sm" onClick={() => setShowTxModal(null)}>Cancel</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setShowTxModal(null)}>Cancel</Button>
                 <Button type="submit" size="sm">Save</Button>
               </div>
             </form>
@@ -521,11 +521,11 @@ export default function PartnersPage() {
       )}
 
       {dupWarning && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-15" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl border-l-4 border-amber-500 my-4">
             <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="h-6 w-6 text-amber-500" />
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Possible Duplicate</h3>
+              <h3 id="mm-dialog-15" className="text-lg font-bold text-slate-900 dark:text-slate-100">Possible Duplicate</h3>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">A similar entry already exists:</p>
             <div className="bg-slate-50 dark:bg-brand-muted/50 rounded-xl p-4 mb-5 text-sm space-y-1">
@@ -560,30 +560,30 @@ export default function PartnersPage() {
         const p = partners.find(p => p.id === settlePartyId);
         if (!p || p.credit <= 0) return null;
         return (
-          <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-16" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
             <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl my-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Settle Credit — {p.name}</h2>
+                <h2 id="mm-dialog-16" className="text-xl font-bold text-slate-900 dark:text-slate-100">Settle Credit — {p.name}</h2>
                 <button onClick={() => setSettlePartyId(null)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"><X className="h-5 w-5" /></button>
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">You owe <span className="font-semibold text-orange-600 dark:text-orange-400">{formatCurrency(p.credit)}</span> to this party. Record your payment below.</p>
               <form onSubmit={handleSettle} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount (₹)</label>
-                  <input required type="number" min="0" step="0.01" max={p.credit} value={settleForm.amount} onChange={e => setSettleForm({ ...settleForm, amount: e.target.value })}
+                  <label htmlFor="mm-amount-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount (₹)</label>
+                  <input id="mm-amount-2" required type="number" min="0" step="0.01" max={p.credit} value={settleForm.amount} onChange={e => setSettleForm({ ...settleForm, amount: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder={`Max ${p.credit}`} autoFocus />
                   <button type="button" onClick={() => setSettleForm({ ...settleForm, amount: String(p.credit) })}
                     className="text-xs text-brand hover:underline font-medium">Pay full amount</button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
-                    <input required type="date" max={todayStr()} value={settleForm.date} onChange={e => setSettleForm({ ...settleForm, date: e.target.value })}
+                    <label htmlFor="mm-date-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
+                    <input id="mm-date-2" required type="date" max={todayStr()} value={settleForm.date} onChange={e => setSettleForm({ ...settleForm, date: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Pay from</label>
-                    <select value={settleForm.account} onChange={e => setSettleForm({ ...settleForm, account: e.target.value as 'cash' | 'bank' | 'upi' })}
+                    <label htmlFor="mm-pay-from" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Pay from</label>
+                    <select id="mm-pay-from" value={settleForm.account} onChange={e => setSettleForm({ ...settleForm, account: e.target.value as 'cash' | 'bank' | 'upi' })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                       <option value="cash">Cash</option>
                       <option value="bank">Bank</option>
@@ -592,7 +592,7 @@ export default function PartnersPage() {
                   </div>
                 </div>
                 <div className="flex items-center justify-end gap-2 pt-2">
-                  <Button variant="ghost" size="sm" onClick={() => setSettlePartyId(null)}>Cancel</Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setSettlePartyId(null)}>Cancel</Button>
                   <Button type="submit" size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">Settle</Button>
                 </div>
               </form>
@@ -606,30 +606,30 @@ export default function PartnersPage() {
         const p = partners.find(p => p.id === receivePartyId);
         if (!p || p.credit >= 0) return null;
         return (
-          <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-17" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
             <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl my-4">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Receive Payment — {p.name}</h2>
+                <h2 id="mm-dialog-17" className="text-xl font-bold text-slate-900 dark:text-slate-100">Receive Payment — {p.name}</h2>
                 <button onClick={() => setReceivePartyId(null)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"><X className="h-5 w-5" /></button>
               </div>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">This party owes you <span className="font-semibold text-emerald-600 dark:text-emerald-400">{formatCurrency(-p.credit)}</span>. Record the payment you received below.</p>
               <form onSubmit={handleReceive} className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount (₹)</label>
-                  <input required type="number" min="0" step="0.01" max={-p.credit} value={receiveForm.amount} onChange={e => setReceiveForm({ ...receiveForm, amount: e.target.value })}
+                  <label htmlFor="mm-amount-3" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount (₹)</label>
+                  <input id="mm-amount-3" required type="number" min="0" step="0.01" max={-p.credit} value={receiveForm.amount} onChange={e => setReceiveForm({ ...receiveForm, amount: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder={`Max ${-p.credit}`} autoFocus />
                   <button type="button" onClick={() => setReceiveForm({ ...receiveForm, amount: String(-p.credit) })}
                     className="text-xs text-brand hover:underline font-medium">Receive full amount</button>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
-                    <input required type="date" max={todayStr()} value={receiveForm.date} onChange={e => setReceiveForm({ ...receiveForm, date: e.target.value })}
+                    <label htmlFor="mm-date-3" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
+                    <input id="mm-date-3" required type="date" max={todayStr()} value={receiveForm.date} onChange={e => setReceiveForm({ ...receiveForm, date: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Receive to</label>
-                    <select value={receiveForm.account} onChange={e => setReceiveForm({ ...receiveForm, account: e.target.value as 'cash' | 'bank' | 'upi' })}
+                    <label htmlFor="mm-receive-to" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Receive to</label>
+                    <select id="mm-receive-to" value={receiveForm.account} onChange={e => setReceiveForm({ ...receiveForm, account: e.target.value as 'cash' | 'bank' | 'upi' })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                       <option value="cash">Cash</option>
                       <option value="bank">Bank</option>
@@ -638,7 +638,7 @@ export default function PartnersPage() {
                   </div>
                 </div>
                 <div className="flex items-center justify-end gap-2 pt-2">
-                  <Button variant="ghost" size="sm" onClick={() => setReceivePartyId(null)}>Cancel</Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setReceivePartyId(null)}>Cancel</Button>
                   <Button type="submit" size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">Received</Button>
                 </div>
               </form>
@@ -649,10 +649,10 @@ export default function PartnersPage() {
 
       {/* Party Ledger Modal */}
       {showLedger && partnerSummary && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-18" className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#2A2522] w-full max-w-sm rounded-2xl max-h-[80vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-brand-muted">
-              <h2 className="font-semibold text-slate-900 dark:text-slate-100">{partnerSummary.name}</h2>
+              <h2 id="mm-dialog-18" className="font-semibold text-slate-900 dark:text-slate-100">{partnerSummary.name}</h2>
               <button onClick={() => setShowLedger(null)} className="p-1 text-slate-400"><X className="h-5 w-5" /></button>
             </div>
             <div className="flex items-center gap-4 px-4 py-3 bg-slate-50 dark:bg-brand-muted/20 text-sm border-b border-slate-100 dark:border-brand-muted">

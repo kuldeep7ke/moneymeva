@@ -54,7 +54,7 @@ export default function GoalsPage() {
 
         <Reveal delay={100}><div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('savings.allGoals')}</h2>
-          <button onClick={() => setShowGoalModal(true)} className="h-9 w-9 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-orange-600 transition-colors active:scale-95 shrink-0" title={t('savings.newGoal')}><Plus className="h-4 w-4" /></button>
+          <button onClick={() => setShowGoalModal(true)} className="h-9 w-9 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-brand-hover transition-colors active:scale-95 shrink-0" title={t('savings.newGoal')}><Plus className="h-4 w-4" /></button>
         </div></Reveal>
 
         <Reveal delay={200}>
@@ -106,23 +106,23 @@ export default function GoalsPage() {
 
       {/* Goal Modal */}
       {showGoalModal && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-20" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full p-8 shadow-2xl my-4">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">{t('savings.newGoal')}</h2>
+            <h2 id="mm-dialog-20" className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">{t('savings.newGoal')}</h2>
             <form onSubmit={handleAddGoal} className="space-y-4">
-              <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('savings.goalName')}</label>
-                <input required value={goalForm.name} onChange={e => setGoalForm({ ...goalForm, name: e.target.value })}
+              <div className="space-y-2"><label htmlFor="mm-t-savings-goalname" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('savings.goalName')}</label>
+                <input id="mm-t-savings-goalname" required value={goalForm.name} onChange={e => setGoalForm({ ...goalForm, name: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder={t('savings.goalName')} /></div>
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('savings.target')}</label>
-                  <input required type="number" min="0" value={goalForm.target} onChange={e => setGoalForm({ ...goalForm, target: e.target.value })}
+                <div className="space-y-2"><label htmlFor="mm-t-savings-target" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('savings.target')}</label>
+                  <input id="mm-t-savings-target" required type="number" min="0" value={goalForm.target} onChange={e => setGoalForm({ ...goalForm, target: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="₹" /></div>
-                <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('savings.savedSoFar')}</label>
-                  <input type="number" min="0" value={goalForm.saved} onChange={e => setGoalForm({ ...goalForm, saved: e.target.value })}
+                <div className="space-y-2"><label htmlFor="mm-t-savings-savedsofar" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('savings.savedSoFar')}</label>
+                  <input id="mm-t-savings-savedsofar" type="number" min="0" value={goalForm.saved} onChange={e => setGoalForm({ ...goalForm, saved: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="₹ 0" /></div>
               </div>
               <div className="flex items-center justify-end gap-2 pt-6">
-                <Button variant="ghost" size="sm" onClick={() => setShowGoalModal(false)}>{t('common.cancel')}</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setShowGoalModal(false)}>{t('common.cancel')}</Button>
                 <Button type="submit" size="sm">{t('savings.createGoal')}</Button>
               </div>
             </form>

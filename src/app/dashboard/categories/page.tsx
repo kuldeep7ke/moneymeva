@@ -198,7 +198,7 @@ export default function CategoriesPage() {
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleAdd(); } }}
               className="flex-1 px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark outline-none focus:ring-2 focus:ring-brand text-sm"
               placeholder="Add new category..." />
-            <button onClick={handleAdd} className="h-9 w-9 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-orange-600 transition-colors active:scale-95 shrink-0">
+            <button onClick={handleAdd} aria-label="Add category" className="h-9 w-9 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-brand-hover transition-colors active:scale-95 shrink-0">
               <Plus className="h-4 w-4" />
             </button>
           </div>
@@ -274,7 +274,7 @@ export default function CategoriesPage() {
       </div>
 
       {detailCat && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-label="Category details" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl w-full max-w-md shadow-xl my-auto">
             <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-brand-muted">
               <div className="h-9 w-9 rounded-xl bg-brand/10 flex items-center justify-center shrink-0">

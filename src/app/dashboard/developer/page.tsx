@@ -20,6 +20,7 @@ import { RELEASE_NOTES, getLastSeenVersion } from '@/lib/whats-new';
 import { exportCustomDataExcel, type CustomExportSection } from '@/lib/export';
 import * as XLSX from 'xlsx';
 import Reveal from '@/components/Reveal';
+import PinPrompt from '@/components/PinPrompt';
 
 const inputCls = 'w-full px-3 py-2 rounded-lg bg-white dark:bg-brand-dark border border-slate-200 dark:border-brand-muted text-sm text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-brand font-mono placeholder:text-slate-400 placeholder:font-sans';
 const mask = (s: string) => (s && s.length > 12 ? `${s.slice(0, 6)}…${s.slice(-4)}` : s);
@@ -59,6 +60,7 @@ export default function DeveloperPage() {
   const [clearing, setClearing] = useState(false);
   const [cleared, setCleared] = useState(false);
   const [showPins, setShowPins] = useState(false);
+  const [devPin, setDevPin] = useState<{ label: string; run: () => void } | null>(null);
   const [dbStats, setDbStats] = useState<Record<string, number> | null>(null);
   const [lsData, setLsData] = useState<{ key: string; value: string }[] | null>(null);
   const [syncOk, setSyncOk] = useState<boolean | null>(null);
@@ -169,8 +171,15 @@ export default function DeveloperPage() {
     if (confirmBox.stage === 1) { setConfirmBox({ ...confirmBox, stage: 2 }); return; }
     const mode = confirmBox.mode;
     setConfirmBox(null);
-    if (mode === 'clear') handleClear();
-    else if (mode === 'clearRemote') handleClearRemote();
+    requireDevPin(mode === 'clear' ? 'erase all local and remote data' : 'erase all remote data',
+      () => mode === 'clear' ? handleClear() : handleClearRemote());
+  };
+
+  // The two-stage confirmation proves intent; a PIN proves presence. Wipes and
+  // PIN disclosure stay behind it so an unlocked screen alone cannot destroy data.
+  const requireDevPin = (label: string, run: () => void) => {
+    if (hasPins()) setDevPin({ label, run });
+    else run();
   };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -724,7 +733,7 @@ const loadRemoteRows = async () => {
                     </span>
                   ))}
                 </div>
-                <Button variant="ghost" size="sm" onClick={() => setShowPins(!showPins)} className="text-xs">
+                <Button variant="ghost" size="sm" onClick={() => { if (showPins) { setShowPins(false); return; } requireDevPin('reveal your recovery PINs', () => setShowPins(true)); }} className="text-xs">
                   {showPins ? <><EyeOff className="h-3.5 w-3.5 mr-1.5" /> Hide PINs</> : <><Eye className="h-3.5 w-3.5 mr-1.5" /> Reveal PINs</>}
                 </Button>
               </div>
@@ -946,10 +955,10 @@ const loadRemoteRows = async () => {
                 <Button variant="outline" onClick={() => { setFreshConfirm(true); setFreshStage(1); }} disabled={freshLoading || pullLoading || pushLoading} className="gap-2 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-900/20">
                   {freshLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Processing...</> : <><RefreshCw className="h-4 w-4" /> Start Fresh: Clear Remote + Push Local</>}
                 </Button>
-                <Button variant="outline" onClick={() => setConfirmBox({ mode: 'clearRemote', stage: 1 })} className="gap-2 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20">
+                <Button variant="outline" onClick={() => setConfirmBox({ mode: 'clearRemote', stage: 1 })} className="gap-2 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20">
                   <Trash2 className="h-4 w-4" /> Clear Remote Only
                 </Button>
-                <Button variant="outline" onClick={() => { setClearLocalConfirm(true); setClearLocalStage(1); }} disabled={clearLocalLoading || pullLoading || pushLoading || freshLoading} className="gap-2 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20">
+                <Button variant="outline" onClick={() => { setClearLocalConfirm(true); setClearLocalStage(1); }} disabled={clearLocalLoading || pullLoading || pushLoading || freshLoading} className="gap-2 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20">
                   {clearLocalLoading ? <><Loader2 className="h-4 w-4 animate-spin" /> Clearing...</> : <><Trash2 className="h-4 w-4" /> Clear Local Only</>}
                 </Button>
                 <Button variant="danger" onClick={() => setConfirmBox({ mode: 'clear', stage: 1 })} disabled={clearing || pullLoading || pushLoading || freshLoading} className="gap-2 font-bold">
@@ -962,18 +971,18 @@ const loadRemoteRows = async () => {
       </div>
 
       {confirmBox && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md overflow-y-auto flex items-start sm:items-center justify-center z-[130] p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-3" className="fixed inset-0 bg-black/60 backdrop-blur-md overflow-y-auto flex items-start sm:items-center justify-center z-[130] p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full shadow-2xl border-2 border-red-400 dark:border-red-600 overflow-hidden my-4">
             <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5 text-center">
               <div className="mx-auto w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mb-3">
                 <Trash2 className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white">
+              <h3 id="mm-dialog-3" className="text-xl font-bold text-white">
                 {confirmBox.mode === 'clear'
                   ? (confirmBox.stage === 1 ? 'Clear All Data' : 'Are you absolutely sure?')
                   : 'Clear Remote Data'}
               </h3>
-              <p className="text-sm text-red-100 mt-1">This action cannot be undone</p>
+              <p className="text-sm text-white mt-1">This action cannot be undone</p>
             </div>
             <div className="p-6 space-y-3">
               <div className="bg-red-50 dark:bg-red-950/40 rounded-xl p-4 border border-red-200 dark:border-red-800 space-y-2">
@@ -1005,16 +1014,16 @@ const loadRemoteRows = async () => {
       )}
 
       {freshConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md overflow-y-auto flex items-start sm:items-center justify-center z-[130] p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-4" className="fixed inset-0 bg-black/60 backdrop-blur-md overflow-y-auto flex items-start sm:items-center justify-center z-[130] p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full shadow-2xl border-2 border-amber-400 dark:border-amber-600 overflow-hidden my-4">
-            <div className="bg-gradient-to-r from-amber-600 to-amber-700 px-6 py-5 text-center">
+            <div className="bg-gradient-to-r from-amber-700 to-amber-800 px-6 py-5 text-center">
               <div className="mx-auto w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mb-3">
                 <AlertTriangle className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white">
+              <h3 id="mm-dialog-4" className="text-xl font-bold text-white">
                 {freshStage === 1 ? 'Start Fresh?' : 'Confirm Start Fresh'}
               </h3>
-              <p className="text-sm text-amber-100 mt-1">Clear remote, then push local data</p>
+              <p className="text-sm text-white mt-1">Clear remote, then push local data</p>
             </div>
             <div className="p-6 space-y-3">
               <div className="bg-amber-50 dark:bg-amber-950/40 rounded-xl p-4 border border-amber-200 dark:border-amber-800 space-y-2">
@@ -1029,7 +1038,7 @@ const loadRemoteRows = async () => {
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => setFreshConfirm(false)}>Cancel</Button>
-                <Button variant="danger" size="sm" className="gap-1.5" onClick={() => { if (freshStage === 1) setFreshStage(2); else handleStartFresh(); }}>
+                <Button variant="danger" size="sm" className="gap-1.5" onClick={() => { if (freshStage === 1) setFreshStage(2); else requireDevPin('clear remote data and push local data over it', handleStartFresh); }}>
                   <Trash2 className="h-3.5 w-3.5" />
                   {freshStage === 1 ? 'Continue' : 'Yes, Start Fresh'}
                 </Button>
@@ -1040,16 +1049,16 @@ const loadRemoteRows = async () => {
       )}
 
       {clearLocalConfirm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md overflow-y-auto flex items-start sm:items-center justify-center z-[130] p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-5" className="fixed inset-0 bg-black/60 backdrop-blur-md overflow-y-auto flex items-start sm:items-center justify-center z-[130] p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full shadow-2xl border-2 border-red-400 dark:border-red-600 overflow-hidden my-4">
             <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5 text-center">
               <div className="mx-auto w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mb-3">
                 <AlertTriangle className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white">
+              <h3 id="mm-dialog-5" className="text-xl font-bold text-white">
                 {clearLocalStage === 1 ? 'Clear Local Data?' : 'Confirm Clear Local'}
               </h3>
-              <p className="text-sm text-red-100 mt-1">This cannot be undone</p>
+              <p className="text-sm text-white mt-1">This cannot be undone</p>
             </div>
             <div className="p-6 space-y-3">
               <div className="bg-red-50 dark:bg-red-950/40 rounded-xl p-4 border border-red-200 dark:border-red-800 space-y-2">
@@ -1064,7 +1073,7 @@ const loadRemoteRows = async () => {
               </div>
               <div className="flex justify-end gap-2">
                 <Button variant="outline" size="sm" onClick={() => setClearLocalConfirm(false)}>Cancel</Button>
-                <Button variant="danger" size="sm" className="gap-1.5" onClick={() => { if (clearLocalStage === 1) setClearLocalStage(2); else handleClearLocal(); }}>
+                <Button variant="danger" size="sm" className="gap-1.5" onClick={() => { if (clearLocalStage === 1) setClearLocalStage(2); else requireDevPin('erase all local data', handleClearLocal); }}>
                   <Trash2 className="h-3.5 w-3.5" />
                   {clearLocalStage === 1 ? 'Continue' : 'Yes, Clear Local'}
                 </Button>
@@ -1073,6 +1082,14 @@ const loadRemoteRows = async () => {
           </div>
         </div>
       )}
+
+      <PinPrompt
+        open={devPin !== null}
+        onClose={() => setDevPin(null)}
+        onSuccess={() => { const a = devPin; setDevPin(null); a?.run(); }}
+        title="Developer Action"
+        message={devPin ? `Enter a PIN to ${devPin.label}` : 'Enter a PIN to proceed'}
+      />
     </DashboardLayout>
   );
 }

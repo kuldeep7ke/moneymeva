@@ -25,8 +25,8 @@ const STEPS = [
 ];
 
 const MONTHLY_INCOME_OPTIONS = [
-  'Under ₹25,000', 'Under ₹1,00,000',
-  'Under ₹50,000', 'Above ₹1,00,000',
+  'Under ₹25,000', 'Under ₹50,000',
+  'Under ₹1,00,000', 'Above ₹1,00,000',
 ];
 
 const PRIMARY_GOALS = [
@@ -348,8 +348,8 @@ export default function OnboardingPage() {
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand" placeholder="John Doe" />
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Phone Number</label>
-                <input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)}
+                <label htmlFor="mm-phone-number" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Phone Number</label>
+                <input id="mm-phone-number" type="tel" value={form.phone} onChange={e => update('phone', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand" placeholder="+91 98765 43210" />
                   <p className="text-xs text-slate-400 mt-1">Optional; used for backup and reminders.</p>
               </div>
@@ -419,8 +419,8 @@ export default function OnboardingPage() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Currency</label>
-                <select value={form.currency} onChange={e => update('currency', e.target.value)}
+                <label htmlFor="mm-currency" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Currency</label>
+                <select id="mm-currency" value={form.currency} onChange={e => update('currency', e.target.value)}
                   className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand">
                   <option value="INR">Indian Rupee (INR)</option>
                   <option value="USD">US Dollar (USD)</option>
@@ -487,14 +487,14 @@ export default function OnboardingPage() {
               ) : (
                 <div className="space-y-4 p-4 bg-slate-50 dark:bg-brand-muted/30 rounded-xl">
                   <div>
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Party Name</label>
-                    <input value={partnerForm.name} onChange={e => setPartnerForm({ ...partnerForm, name: e.target.value })}
+                    <label htmlFor="mm-party-name" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Party Name</label>
+                    <input id="mm-party-name" value={partnerForm.name} onChange={e => setPartnerForm({ ...partnerForm, name: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. Joint Venture" />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Group</label>
-                      <select value={partnerForm.group} onChange={e => { const newGroup = e.target.value as PartyGroup; setPartnerForm({ ...partnerForm, group: newGroup, type: PARTY_TYPES_BY_GROUP[newGroup]?.[0]?.value || 'other' }); }}
+                      <label htmlFor="mm-group" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Group</label>
+                      <select id="mm-group" value={partnerForm.group} onChange={e => { const newGroup = e.target.value as PartyGroup; setPartnerForm({ ...partnerForm, group: newGroup, type: PARTY_TYPES_BY_GROUP[newGroup]?.[0]?.value || 'other' }); }}
                         className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand">
                         {PARTY_GROUPS.map(g => (
                           <option key={g.value} value={g.value}>{g.label}</option>
@@ -502,8 +502,8 @@ export default function OnboardingPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Type</label>
-                      <select value={partnerForm.type} onChange={e => setPartnerForm({ ...partnerForm, type: e.target.value })}
+                      <label htmlFor="mm-type" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Type</label>
+                      <select id="mm-type" value={partnerForm.type} onChange={e => setPartnerForm({ ...partnerForm, type: e.target.value })}
                         className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand">
                         {(PARTY_TYPES_BY_GROUP[partnerForm.group] || PARTY_TYPES_BY_GROUP.personal).map(t => (
                           <option key={t.value} value={t.value}>{t.label}</option>
@@ -512,8 +512,8 @@ export default function OnboardingPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Description</label>
-                    <input value={partnerForm.description} onChange={e => setPartnerForm({ ...partnerForm, description: e.target.value })}
+                    <label htmlFor="mm-description" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Description</label>
+                    <input id="mm-description" value={partnerForm.description} onChange={e => setPartnerForm({ ...partnerForm, description: e.target.value })}
                       className="w-full px-4 py-2.5 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand" placeholder="Brief description" />
                   </div>
                   {partnerForm.name && (
@@ -606,7 +606,7 @@ export default function OnboardingPage() {
       {importing && (
         <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-white dark:bg-slate-950">
           <div className="relative flex items-center justify-center mb-6">
-            <img src={`${BASE_PATH}/favicon.jpg`} alt="" className="h-16 w-16 rounded-2xl shadow-lg" />
+            <img src={`${BASE_PATH}/favicon-256.jpg`} alt="" className="h-16 w-16 rounded-2xl shadow-lg" />
             <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-emerald-500 animate-ping" />
           </div>
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-4 px-6 text-center">{importProgress?.label || 'Importing…'}</p>

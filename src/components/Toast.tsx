@@ -50,7 +50,12 @@ export function useToast() {
 function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: string) => void }) {
   if (toasts.length === 0) return null;
   return (
-    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] flex flex-col gap-2 items-center pointer-events-none">
+    <div
+      className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[200] flex flex-col gap-2 items-center pointer-events-none"
+      role="region"
+      aria-label="Notifications"
+      aria-live="polite"
+    >
       {toasts.map(t => (
         <ToastItem key={t.id} toast={t} onRemove={() => onRemove(t.id)} />
       ))}
@@ -59,10 +64,12 @@ function ToastContainer({ toasts, onRemove }: { toasts: Toast[]; onRemove: (id: 
 }
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) {
+  // 500/600-level fills put white text under 4.5:1, so the toast surfaces use
+  // the shade that clears AA against white.
   const colors: Record<ToastType, string> = {
-    success: 'bg-green-600',
-    error: 'bg-red-600',
-    warning: 'bg-amber-600',
+    success: 'bg-green-700',
+    error: 'bg-red-700',
+    warning: 'bg-amber-700',
     info: 'bg-slate-700 dark:bg-slate-600',
   };
   const icons: Record<ToastType, string> = {
@@ -74,9 +81,10 @@ function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: () => void }) 
   return (
     <div
       className={`${colors[toast.type]} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-sm font-medium pointer-events-auto slide-up max-w-sm`}
+      role={toast.type === 'error' || toast.type === 'warning' ? 'alert' : 'status'}
       onClick={onRemove}
     >
-      <span className="text-base">{icons[toast.type]}</span>
+      <span className="text-base" aria-hidden="true">{icons[toast.type]}</span>
       <span>{toast.message}</span>
     </div>
   );

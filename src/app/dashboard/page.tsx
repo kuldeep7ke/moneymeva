@@ -413,7 +413,7 @@ export default function DashboardPage() {
           <div>
             <p className="hidden md:inline-flex items-center text-sm font-semibold text-slate-700 dark:text-slate-200">
               <span className="font-bold uppercase tracking-wider text-brand">At a glance</span>
-              <span className="mx-2 text-slate-300 dark:text-slate-600">|</span>
+              <span className="mx-2 text-slate-300 dark:text-slate-500">|</span>
               <span>Your money, simplified.</span>
             </p>
             <div className="md:hidden">
@@ -630,32 +630,32 @@ export default function DashboardPage() {
         )}
 
         <Reveal delay={200}>
-        <div className="bg-gradient-to-r from-brand to-purple-600 p-6 rounded-2xl shadow-lg text-white">
+        <div className="bg-brand p-6 rounded-2xl shadow-lg text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <RotateCcw className="h-8 w-8 opacity-80" />
                <div>
                  <h3 className="text-lg font-bold">Balance Carry Forward</h3>
-                 <p className="text-sm opacity-80">Unspent balance rolls over automatically.</p>
+                 <p className="text-sm">Unspent balance rolls over automatically.</p>
                </div>
             </div>
             <CalendarArrowUp className="h-6 w-6 opacity-60" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <p className="text-sm opacity-80 mb-1">Last Month Carry</p>
+              <p className="text-sm mb-1">Last Month Carry</p>
               <p className="text-2xl font-bold">{formatCurrency(carryFwd.lastMonthCarry)}</p>
-              <p className="text-xs opacity-60">Carried forward</p>
+              <p className="text-xs">Carried forward</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <p className="text-sm opacity-80 mb-1">This Month Start</p>
+              <p className="text-sm mb-1">This Month Start</p>
               <p className="text-2xl font-bold">{formatCurrency(carryFwd.currentStart)}</p>
-              <p className="text-xs opacity-60">Opening balance</p>
+              <p className="text-xs">Opening balance</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-              <p className="text-sm opacity-80 mb-1">Current Balance</p>
+              <p className="text-sm mb-1">Current Balance</p>
               <p className="text-2xl font-bold">{formatCurrency(carryFwd.currentBalance)}</p>
-              <p className="text-xs opacity-60">Running balance</p>
+              <p className="text-xs">Running balance</p>
             </div>
           </div>
         </div>
@@ -897,9 +897,9 @@ export default function DashboardPage() {
 
       {/* Add Money & Transfer */}
       {showAddMoney && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto flex items-start sm:items-center justify-center z-50 p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-6" className="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto flex items-start sm:items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl my-4">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">{addMoneyMode === 'transfer' ? 'Transfer Between Accounts' : 'Add Money'}</h3>
+            <h3 id="mm-dialog-6" className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">{addMoneyMode === 'transfer' ? 'Transfer Between Accounts' : 'Add Money'}</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
               {addMoneyMode === 'transfer' ? 'Move money between Cash and Bank. Both accounts will be updated.' : 'Add funds to your Cash or Bank account.'}
             </p>
@@ -942,16 +942,16 @@ export default function DashboardPage() {
               setTimeout(() => setToast(null), 4000);
             }} className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Amount (₹)</label>
-                 <input required type="number" min="0" step="0.01" value={addMoneyAmount} onChange={e => setAddMoneyAmount(e.target.value)} autoFocus
+                <label htmlFor="mm-amount" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Amount (₹)</label>
+                 <input id="mm-amount" required type="number" min="0" step="0.01" value={addMoneyAmount} onChange={e => setAddMoneyAmount(e.target.value)} autoFocus
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="0" />
               </div>
 
               {addMoneyMode === 'transfer' ? (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">From</label>
-                    <select value={addMoneySource} onChange={e => setAddMoneySource(e.target.value)}
+                    <label htmlFor="mm-from" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">From</label>
+                    <select id="mm-from" value={addMoneySource} onChange={e => setAddMoneySource(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm">
                       <option value="cash">Cash</option>
                       <option value="bank">Bank</option>
@@ -959,8 +959,8 @@ export default function DashboardPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">To</label>
-                    <select value={addMoneyDest} onChange={e => setAddMoneyDest(e.target.value)}
+                    <label htmlFor="mm-to" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">To</label>
+                    <select id="mm-to" value={addMoneyDest} onChange={e => setAddMoneyDest(e.target.value)}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm">
                       <option value="cash">Cash</option>
                       <option value="bank">Bank</option>
@@ -970,8 +970,8 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Account</label>
-                  <select value={addMoneyDest} onChange={e => setAddMoneyDest(e.target.value)}
+                  <label htmlFor="mm-account" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Account</label>
+                  <select id="mm-account" value={addMoneyDest} onChange={e => setAddMoneyDest(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm">
                     <option value="cash">Cash</option>
                     <option value="bank">Bank</option>
@@ -981,7 +981,7 @@ export default function DashboardPage() {
               )}
 
               <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="ghost" size="sm" onClick={() => setShowAddMoney(false)}>Cancel</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddMoney(false)}>Cancel</Button>
                 <Button type="submit" size="sm">{addMoneyMode === 'transfer' ? 'Transfer' : 'Add Money'}</Button>
               </div>
             </form>
@@ -991,9 +991,9 @@ export default function DashboardPage() {
 
       {/* Add/Edit Goal Modal */}
       {editGoal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto flex items-start sm:items-center justify-center z-50 p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-7" className="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto flex items-start sm:items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl my-4">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">{editGoal._new ? 'New Goal' : 'Edit Goal'}</h3>
+            <h3 id="mm-dialog-7" className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">{editGoal._new ? 'New Goal' : 'Edit Goal'}</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">{editGoal._new ? 'Set a savings target' : `Edit "${editGoal.name}"`}</p>
             <form onSubmit={(e) => {
               e.preventDefault();
@@ -1008,24 +1008,24 @@ export default function DashboardPage() {
               setTimeout(() => setToast(null), 3000);
             }} className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Goal Name</label>
-                <input required value={editGoalForm.name} onChange={e => setEditGoalForm({ ...editGoalForm, name: e.target.value })}
+                <label htmlFor="mm-goal-name" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Goal Name</label>
+                <input id="mm-goal-name" required value={editGoalForm.name} onChange={e => setEditGoalForm({ ...editGoalForm, name: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="e.g. New Laptop" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Target (₹)</label>
-                   <input required type="number" min="0" value={editGoalForm.target} onChange={e => setEditGoalForm({ ...editGoalForm, target: e.target.value })}
+                  <label htmlFor="mm-target" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Target (₹)</label>
+                   <input id="mm-target" required type="number" min="0" value={editGoalForm.target} onChange={e => setEditGoalForm({ ...editGoalForm, target: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Saved (₹)</label>
-                   <input type="number" min="0" value={editGoalForm.saved} onChange={e => setEditGoalForm({ ...editGoalForm, saved: e.target.value })}
+                  <label htmlFor="mm-saved" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Saved (₹)</label>
+                   <input id="mm-saved" type="number" min="0" value={editGoalForm.saved} onChange={e => setEditGoalForm({ ...editGoalForm, saved: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" />
                 </div>
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="ghost" size="sm" onClick={() => setEditGoal(null)}>Cancel</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setEditGoal(null)}>Cancel</Button>
                 <Button type="submit" size="sm">{editGoal._new ? 'Create Goal' : 'Save Changes'}</Button>
               </div>
             </form>
@@ -1035,9 +1035,9 @@ export default function DashboardPage() {
 
       {/* Goal Transaction Modal */}
       {showGoalTx && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-8" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl my-4">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">
+            <h3 id="mm-dialog-8" className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">
               {showGoalTx.type === 'contribute' ? 'Contribute' : 'Withdraw'}
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
@@ -1060,13 +1060,13 @@ export default function DashboardPage() {
               setTimeout(() => setToast(null), 3000);
             }} className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Amount (₹)</label>
-                <input required type="number" min="0" step="0.01" value={goalTxForm.amount} onChange={e => setGoalTxForm({ ...goalTxForm, amount: e.target.value })}
+                <label htmlFor="mm-amount-2" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Amount (₹)</label>
+                <input id="mm-amount-2" required type="number" min="0" step="0.01" value={goalTxForm.amount} onChange={e => setGoalTxForm({ ...goalTxForm, amount: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="0" autoFocus />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Account</label>
-                <select value={goalTxForm.account} onChange={e => setGoalTxForm({ ...goalTxForm, account: e.target.value as 'cash' | 'bank' | 'upi' })}
+                <label htmlFor="mm-account-2" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Account</label>
+                <select id="mm-account-2" value={goalTxForm.account} onChange={e => setGoalTxForm({ ...goalTxForm, account: e.target.value as 'cash' | 'bank' | 'upi' })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm">
                   <option value="cash">Cash</option>
                   <option value="bank">Bank</option>
@@ -1084,9 +1084,9 @@ export default function DashboardPage() {
 
       {/* Recurring Transaction Modal */}
       {showRecurringForm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-9" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl my-4">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Advance Recurring</h3>
+            <h3 id="mm-dialog-9" className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Advance Recurring</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">Record transaction for "{showRecurringForm.title}"</p>
             <form onSubmit={(e) => {
               e.preventDefault();
@@ -1101,22 +1101,22 @@ export default function DashboardPage() {
             }} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Type</label>
-                  <select value={recurringForm.type} onChange={e => setRecurringForm({ ...recurringForm, type: e.target.value })}
+                  <label htmlFor="mm-type" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Type</label>
+                  <select id="mm-type" value={recurringForm.type} onChange={e => setRecurringForm({ ...recurringForm, type: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm">
                     <option value="expense">Expense</option>
                     <option value="income">Income</option>
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Amount (₹)</label>
-                  <input required type="number" min="0" step="0.01" value={recurringForm.amount} onChange={e => setRecurringForm({ ...recurringForm, amount: e.target.value })}
+                  <label htmlFor="mm-amount-3" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Amount (₹)</label>
+                  <input id="mm-amount-3" required type="number" min="0" step="0.01" value={recurringForm.amount} onChange={e => setRecurringForm({ ...recurringForm, amount: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" autoFocus />
                 </div>
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Account</label>
-                <select value={recurringForm.account} onChange={e => setRecurringForm({ ...recurringForm, account: e.target.value as 'cash' | 'bank' | 'upi' })}
+                <label htmlFor="mm-account-3" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Account</label>
+                <select id="mm-account-3" value={recurringForm.account} onChange={e => setRecurringForm({ ...recurringForm, account: e.target.value as 'cash' | 'bank' | 'upi' })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm">
                   <option value="cash">Cash</option>
                   <option value="bank">Bank</option>
@@ -1124,13 +1124,13 @@ export default function DashboardPage() {
                 </select>
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Date</label>
-                <input required type="date" value={recurringForm.date} onChange={e => setRecurringForm({ ...recurringForm, date: e.target.value })}
+                <label htmlFor="mm-date" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Date</label>
+                <input id="mm-date" required type="date" value={recurringForm.date} onChange={e => setRecurringForm({ ...recurringForm, date: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" />
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Description</label>
-                <input value={recurringForm.description} onChange={e => setRecurringForm({ ...recurringForm, description: e.target.value })}
+                <label htmlFor="mm-description" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Description</label>
+                <input id="mm-description" value={recurringForm.description} onChange={e => setRecurringForm({ ...recurringForm, description: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" />
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
@@ -1144,19 +1144,19 @@ export default function DashboardPage() {
 
       {/* Quick Add Transaction Modal */}
       {showAddTx && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-10" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl my-4">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">Add {showAddTx === 'income' ? 'Income' : showAddTx === 'expense' ? 'Expense' : 'Investment'}</h3>
+            <h3 id="mm-dialog-10" className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">Add {showAddTx === 'income' ? 'Income' : showAddTx === 'expense' ? 'Expense' : 'Investment'}</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">Quick entry from dashboard — recent categories shown first</p>
             <form onSubmit={handleQuickAddTx} className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Amount (₹)</label>
-                <input required type="number" min="0" step="0.01" value={txForm.amount} onChange={e => setTxForm({ ...txForm, amount: e.target.value })}
+                <label htmlFor="mm-amount-4" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Amount (₹)</label>
+                <input id="mm-amount-4" required type="number" min="0" step="0.01" value={txForm.amount} onChange={e => setTxForm({ ...txForm, amount: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="0" autoFocus />
               </div>
               <div className="relative" ref={catRef}>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Category</label>
-                <input required value={txForm.category}
+                <label htmlFor="mm-category" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Category</label>
+                <input id="mm-category" required value={txForm.category}
                   onChange={e => { setTxForm({ ...txForm, category: e.target.value }); setTxCatSearch(e.target.value); setTxShowCatDropdown(true); setTxCatHighlight(-1); }}
                   onFocus={() => setTxShowCatDropdown(true)}
                   onKeyDown={handleTxCatKeyDown}
@@ -1183,14 +1183,14 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Date</label>
-                  <input required type="date" max={todayStr()} value={txForm.date} onChange={e => setTxForm({ ...txForm, date: e.target.value })}
+                  <label htmlFor="mm-date-2" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Date</label>
+                  <input id="mm-date-2" required type="date" max={todayStr()} value={txForm.date} onChange={e => setTxForm({ ...txForm, date: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" />
                 </div>
                 {showAddTx !== 'investment' && (
                   <div>
-                    <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Account</label>
-                    <select value={txForm.account} onChange={e => setTxForm({ ...txForm, account: e.target.value as 'cash' | 'bank' | 'upi' })}
+                    <label htmlFor="mm-account-4" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Account</label>
+                    <select id="mm-account-4" value={txForm.account} onChange={e => setTxForm({ ...txForm, account: e.target.value as 'cash' | 'bank' | 'upi' })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm">
                       <option value="cash">Cash</option>
                       <option value="bank">Bank</option>
@@ -1200,8 +1200,8 @@ export default function DashboardPage() {
                 )}
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Description</label>
-                <input value={txForm.description} onChange={e => setTxForm({ ...txForm, description: e.target.value })}
+                <label htmlFor="mm-description-2" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Description</label>
+                <input id="mm-description-2" value={txForm.description} onChange={e => setTxForm({ ...txForm, description: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="Add a note..." />
               </div>
               {showAddTx === 'investment' && (
@@ -1225,20 +1225,20 @@ export default function DashboardPage() {
 
       {/* Quick Add Party Modal */}
       {showAddParty && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-11" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl my-4">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">New Party</h3>
+            <h3 id="mm-dialog-11" className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">New Party</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">Add a person or business</p>
             <form onSubmit={handleQuickAddParty} className="space-y-4">
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Name</label>
-                <input required value={partyForm.name} onChange={e => setPartyForm({ ...partyForm, name: e.target.value })}
+                <label htmlFor="mm-name" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Name</label>
+                <input id="mm-name" required value={partyForm.name} onChange={e => setPartyForm({ ...partyForm, name: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="Party name" autoFocus />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Group</label>
-                  <select value={partyForm.group} onChange={e => { const newGroup = e.target.value as PartyGroup; setPartyForm({ ...partyForm, group: newGroup, type: PARTY_TYPES_BY_GROUP[newGroup]?.[0]?.value || 'other' }); }}
+                  <label htmlFor="mm-group" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Group</label>
+                  <select id="mm-group" value={partyForm.group} onChange={e => { const newGroup = e.target.value as PartyGroup; setPartyForm({ ...partyForm, group: newGroup, type: PARTY_TYPES_BY_GROUP[newGroup]?.[0]?.value || 'other' }); }}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm">
                     {PARTY_GROUPS.map(g => (
                       <option key={g.value} value={g.value}>{g.label}</option>
@@ -1246,8 +1246,8 @@ export default function DashboardPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Type</label>
-                  <select value={partyForm.type} onChange={e => setPartyForm({ ...partyForm, type: e.target.value })}
+                  <label htmlFor="mm-type-2" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Type</label>
+                  <select id="mm-type-2" value={partyForm.type} onChange={e => setPartyForm({ ...partyForm, type: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm">
                     {(PARTY_TYPES_BY_GROUP[partyForm.group] || PARTY_TYPES_BY_GROUP.personal).map(t => (
                       <option key={t.value} value={t.value}>{t.label}</option>
@@ -1256,8 +1256,8 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Description</label>
-                <input value={partyForm.description} onChange={e => setPartyForm({ ...partyForm, description: e.target.value })}
+                <label htmlFor="mm-description-3" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Description</label>
+                <input id="mm-description-3" value={partyForm.description} onChange={e => setPartyForm({ ...partyForm, description: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="Notes..." />
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
@@ -1271,10 +1271,10 @@ export default function DashboardPage() {
 
       {/* Save Confirmation Modal */}
       {confirmTx && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-12" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-sm w-full p-6 shadow-2xl mx-4">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Entry Saved</h3>
+              <h3 id="mm-dialog-12" className="text-lg font-bold text-slate-900 dark:text-slate-100">Entry Saved</h3>
               <button onClick={() => setConfirmTx(null)} className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                 <X className="h-5 w-5" />
               </button>

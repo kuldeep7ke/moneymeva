@@ -148,7 +148,7 @@ export default function BannerModal() {
   // next tick): show the skeleton inside the overlay, not a separate loading screen.
   if (!ready) {
     return (
-      <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div role="dialog" aria-modal="true" aria-label="Announcement" className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm">
         <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl ${widthClass} w-[calc(100vw-2rem)] overflow-hidden relative`}>
           <button
             onClick={dismiss}
@@ -174,7 +174,7 @@ export default function BannerModal() {
   }
 
   return (
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div role="dialog" aria-modal="true" aria-label="Announcement" className="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className={`bg-white dark:bg-slate-900 rounded-2xl shadow-2xl ${widthClass} w-[calc(100vw-2rem)] max-h-[calc(100vh-4rem)] overflow-hidden relative`} onClick={e => e.stopPropagation()}>
         {canClose && (
           <button

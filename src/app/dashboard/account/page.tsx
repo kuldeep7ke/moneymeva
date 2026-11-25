@@ -139,7 +139,7 @@ export default function AccountPage() {
                     <input type={showChangeCurrent ? 'text' : 'password'} placeholder="Current password" value={changePwCurrent}
                       onChange={e => setChangePwCurrent(e.target.value)}
                       className="w-full px-4 py-2.5 pr-10 rounded-lg border border-slate-200 dark:border-brand-muted bg-transparent text-sm outline-none focus:ring-2 focus:ring-emerald-500 text-slate-700 dark:text-slate-300 placeholder-slate-400" />
-                    <button type="button" onClick={() => setShowChangeCurrent(!showChangeCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <button type="button" aria-label={showChangeCurrent ? 'Hide password' : 'Show password'} aria-pressed={showChangeCurrent} onClick={() => setShowChangeCurrent(!showChangeCurrent)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                       {showChangeCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
@@ -147,7 +147,7 @@ export default function AccountPage() {
                     <input type={showChangeNew ? 'text' : 'password'} placeholder="New password" value={changePwNew}
                       onChange={e => setChangePwNew(e.target.value)}
                       className="w-full px-4 py-2.5 pr-10 rounded-lg border border-slate-200 dark:border-brand-muted bg-transparent text-sm outline-none focus:ring-2 focus:ring-emerald-500 text-slate-700 dark:text-slate-300 placeholder-slate-400" />
-                    <button type="button" onClick={() => setShowChangeNew(!showChangeNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <button type="button" aria-label={showChangeNew ? 'Hide password' : 'Show password'} aria-pressed={showChangeNew} onClick={() => setShowChangeNew(!showChangeNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                       {showChangeNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
@@ -155,7 +155,7 @@ export default function AccountPage() {
                     <input type={showChangeConfirm ? 'text' : 'password'} placeholder="Confirm new password" value={changePwConfirm}
                       onChange={e => setChangePwConfirm(e.target.value)}
                       className="w-full px-4 py-2.5 pr-10 rounded-lg border border-slate-200 dark:border-brand-muted bg-transparent text-sm outline-none focus:ring-2 focus:ring-emerald-500 text-slate-700 dark:text-slate-300 placeholder-slate-400" />
-                    <button type="button" onClick={() => setShowChangeConfirm(!showChangeConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <button type="button" aria-label={showChangeConfirm ? 'Hide password' : 'Show password'} aria-pressed={showChangeConfirm} onClick={() => setShowChangeConfirm(!showChangeConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                       {showChangeConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
@@ -179,7 +179,7 @@ export default function AccountPage() {
                     <input type={showResetNew ? 'text' : 'password'} placeholder="New password" value={resetPwNew}
                       onChange={e => setResetPwNew(e.target.value)}
                       className="w-full px-4 py-2.5 pr-10 rounded-lg border border-slate-200 dark:border-brand-muted bg-transparent text-sm outline-none focus:ring-2 focus:ring-amber-500 text-slate-700 dark:text-slate-300 placeholder-slate-400" />
-                    <button type="button" onClick={() => setShowResetNew(!showResetNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <button type="button" aria-label={showResetNew ? 'Hide password' : 'Show password'} aria-pressed={showResetNew} onClick={() => setShowResetNew(!showResetNew)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                       {showResetNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
@@ -187,7 +187,7 @@ export default function AccountPage() {
                     <input type={showResetConfirm ? 'text' : 'password'} placeholder="Confirm new password" value={resetPwConfirm}
                       onChange={e => setResetPwConfirm(e.target.value)}
                       className="w-full px-4 py-2.5 pr-10 rounded-lg border border-slate-200 dark:border-brand-muted bg-transparent text-sm outline-none focus:ring-2 focus:ring-amber-500 text-slate-700 dark:text-slate-300 placeholder-slate-400" />
-                    <button type="button" onClick={() => setShowResetConfirm(!showResetConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                    <button type="button" aria-label={showResetConfirm ? 'Hide password' : 'Show password'} aria-pressed={showResetConfirm} onClick={() => setShowResetConfirm(!showResetConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                       {showResetConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>

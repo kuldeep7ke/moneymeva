@@ -115,7 +115,7 @@ export default function CloudSetupWizard({ open, onClose }: { open: boolean; onC
     : <Circle className="h-4 w-4 text-slate-300 dark:text-slate-600" />;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+    <div role="dialog" aria-modal="true" aria-label="Cloud sync setup" className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
       <div
         className="bg-white dark:bg-[#2A2522] rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}
@@ -126,7 +126,7 @@ export default function CloudSetupWizard({ open, onClose }: { open: boolean; onC
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Cloud Sync Setup</h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">Create your own free Supabase — 2 steps</p>
           </div>
-          <button onClick={onClose} className="p-2 -mr-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+          <button onClick={onClose} aria-label="Close setup guide" className="p-2 -mr-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -201,7 +201,7 @@ export default function CloudSetupWizard({ open, onClose }: { open: boolean; onC
                   : 'In SQL Editor, paste and Run the copied SQL (creates the sync table).'}
               </p>
               <div className="mt-1.5 flex items-center gap-3">
-                <button onClick={copySql}
+                <button onClick={copySql} aria-label="Copy SQL"
                         className="inline-flex items-center gap-1 text-xs font-medium text-sky-600 dark:text-sky-400 hover:underline disabled:opacity-40"
                         disabled={!hasCreds}>
                   <Copy className="h-3 w-3" /> {copied ? 'Copied!' : 'Copy SQL'}
@@ -234,7 +234,7 @@ export default function CloudSetupWizard({ open, onClose }: { open: boolean; onC
               </p>
               <button
                 onClick={persistAndClose}
-                className="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 text-white text-sm font-medium hover:opacity-90 transition-opacity inline-flex items-center justify-center gap-1"
+                className="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-r from-sky-700 to-blue-700 text-white text-sm font-medium hover:opacity-95 transition-opacity inline-flex items-center justify-center gap-1"
               >
                 Done <ChevronRight className="h-4 w-4" />
               </button>

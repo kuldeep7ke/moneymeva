@@ -220,10 +220,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="p-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-brand">Money Meva</h1>
         <div className="flex items-center gap-1">
-          <button onClick={toggleTheme} className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-brand-muted transition-colors">
+          <button onClick={toggleTheme} aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'} className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-brand-muted transition-colors">
             {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
           </button>
-          <button onClick={() => setMobileOpen(false)} className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-brand-muted transition-colors md:hidden">
+          <button onClick={() => setMobileOpen(false)} aria-label="Close menu" className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-brand-muted transition-colors md:hidden">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -237,7 +237,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors font-medium",
                 pathname === item.href 
-                  ? "bg-brand-secondary dark:bg-brand-muted/30 text-brand dark:text-brand-secondary" 
+                  ? "bg-brand-secondary dark:bg-brand-muted/30 text-brand-dark dark:text-brand-secondary font-semibold" 
                   : "text-slate-600 dark:text-slate-400 hover:bg-brand-light dark:hover:bg-brand-muted/50 hover:text-slate-900 dark:hover:text-slate-200"
               )}
           >
@@ -302,8 +302,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="fixed bottom-6 right-6 z-40 md:hidden">
         {navOpen && <div className="fixed inset-0" onClick={() => setNavOpen(false)} />}
         <div className="relative">
-          <button onClick={() => setNavOpen(v => !v)}
-            className="h-14 w-14 rounded-full bg-brand text-white shadow-lg flex items-center justify-center hover:bg-orange-600 transition-colors active:scale-95">
+          <button onClick={() => setNavOpen(v => !v)} aria-label="Open quick navigation" aria-expanded={navOpen}
+            className="h-14 w-14 rounded-full bg-brand text-white shadow-lg flex items-center justify-center hover:opacity-90 transition-colors active:scale-95">
             <LayoutDashboard className="h-6 w-6" />
           </button>
           {navOpen && (
@@ -332,13 +332,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Session Lock Overlay — topmost: security gate outranks every popup */}
       {locked && !unlocking && (
-        <div className="fixed inset-0 z-[10001] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-30" className="fixed inset-0 z-[10001] bg-black/70 backdrop-blur-md flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-sm w-full p-8 shadow-2xl text-center space-y-6">
             <div className="mx-auto w-16 h-16 rounded-full bg-brand-secondary dark:bg-brand-muted/30 flex items-center justify-center">
               <Lock className="h-8 w-8 text-brand dark:text-brand-secondary" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('common.lockSession')}</h2>
+              <h2 id="mm-dialog-30" className="text-xl font-bold text-slate-900 dark:text-slate-100">{t('common.sessionLocked')}</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('common.enterPin')}</p>
             </div>
             <form onSubmit={(e) => { e.preventDefault(); handleUnlock(); }} className="space-y-4">
@@ -347,8 +347,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className={cn("w-full text-center text-2xl tracking-[0.5em] px-4 py-3 rounded-lg border outline-none focus:ring-2 pin-mask",
                   pinError ? "border-red-500 focus:ring-red-500 bg-red-50" : "border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 focus:ring-brand"
                 )} placeholder="••••" />
-              {pinError && <p className="text-xs text-red-500 font-medium">Invalid PIN. Try another one.</p>}
-              {remaining > 0 && <p className="text-xs text-slate-400 dark:text-slate-500">{remaining} PIN{remaining > 1 ? 's' : ''} remaining</p>}
+              {pinError && <p className="text-xs text-red-500 font-medium">{t('common.invalidPin')}</p>}
+              {remaining > 0 && <p className="text-xs text-slate-400 dark:text-slate-500">{t('common.pinsRemaining', { n: remaining })}</p>}
               <Button type="submit" className="w-full py-3" disabled={pinInput.length < 4}>
                 <Unlock className="h-4 w-4 mr-2" /> {t('common.unlock')}
               </Button>
@@ -362,13 +362,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Instant Lock Confirmation */}
       {showLockConfirm && (
-        <div className="fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-31" className="fixed inset-0 z-[90] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4">
             <div className="mx-auto w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
               <Lock className="h-6 w-6 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Lock Session?</h3>
+              <h3 id="mm-dialog-31" className="text-lg font-bold text-slate-900 dark:text-slate-100">{t('common.lockSession')}</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                 Your session will be locked immediately. You'll need your PIN to unlock it.
               </p>
@@ -387,7 +387,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 overflow-y-auto p-4 md:p-8 dark:bg-brand-dark">
         <div className="flex items-center justify-between mb-6 md:hidden">
           <div className="flex items-center gap-3">
-            <button onClick={() => setMobileOpen(true)} className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-[#2A2522] transition-colors">
+            <button onClick={() => setMobileOpen(true)} aria-label="Open menu" className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-[#2A2522] transition-colors">
               <Menu className="h-5 w-5" />
             </button>
             <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{navItems.find(i => pathname === i.href || (i.href !== '/dashboard' && pathname.startsWith(i.href + '/')))?.name || t('nav.dashboard')}</span>

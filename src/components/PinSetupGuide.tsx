@@ -17,14 +17,14 @@ export default function PinSetupGuide({ open, onClose, action }: PinSetupGuidePr
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[120] p-4">
+    <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-35" className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[120] p-4">
       <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full shadow-2xl border border-brand/20 overflow-hidden">
-        <div className="bg-gradient-to-r from-brand to-orange-600 px-6 py-5 text-center">
+        <div className="bg-gradient-to-r from-brand to-brand-hover px-6 py-5 text-center">
           <div className="mx-auto w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mb-3">
             <Shield className="h-7 w-7 text-white" />
           </div>
-          <h3 className="text-xl font-bold text-white">Security Feature Required</h3>
-          <p className="text-sm text-orange-100 mt-1">Set up PINs to unlock this action</p>
+          <h3 id="mm-dialog-35" className="text-xl font-bold text-white">Security Feature Required</h3>
+          <p className="text-sm text-white mt-1">Set up PINs to unlock this action</p>
         </div>
         <div className="p-6 space-y-5">
           <p className="text-sm text-slate-600 dark:text-slate-400">

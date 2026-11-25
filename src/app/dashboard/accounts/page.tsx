@@ -252,16 +252,16 @@ export default function AccountsPage() {
               <form onSubmit={handleTransfer} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-slate-500 block mb-1">From</label>
-                    <select value={transferForm.from} onChange={e => setTransferForm({ ...transferForm, from: e.target.value })}
+                    <label htmlFor="mm-from" className="text-xs font-medium text-slate-500 block mb-1">From</label>
+                    <select id="mm-from" value={transferForm.from} onChange={e => setTransferForm({ ...transferForm, from: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark outline-none focus:ring-2 focus:ring-brand text-sm">
                       <option value="cash">Cash</option>
                       <option value="bank">Bank</option>
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-slate-500 block mb-1">To</label>
-                    <select value={transferForm.to} onChange={e => setTransferForm({ ...transferForm, to: e.target.value })}
+                    <label htmlFor="mm-to" className="text-xs font-medium text-slate-500 block mb-1">To</label>
+                    <select id="mm-to" value={transferForm.to} onChange={e => setTransferForm({ ...transferForm, to: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark outline-none focus:ring-2 focus:ring-brand text-sm">
                       <option value="cash">Cash</option>
                       <option value="bank">Bank</option>
@@ -269,12 +269,12 @@ export default function AccountsPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-500 block mb-1">Amount (₹)</label>
-                  <input required type="number" min="0" step="0.01" value={transferForm.amount} onChange={e => setTransferForm({ ...transferForm, amount: e.target.value })}
+                  <label htmlFor="mm-amount" className="text-xs font-medium text-slate-500 block mb-1">Amount (₹)</label>
+                  <input id="mm-amount" required type="number" min="0" step="0.01" value={transferForm.amount} onChange={e => setTransferForm({ ...transferForm, amount: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="0" autoFocus />
                 </div>
                 <div className="flex justify-end gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => setShowTransfer(false)}>Cancel</Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setShowTransfer(false)}>Cancel</Button>
                   <Button type="submit" size="sm">Transfer</Button>
                 </div>
               </form>
@@ -377,10 +377,10 @@ export default function AccountsPage() {
       </div>
 
       {showCapital && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-1" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl my-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">Add Capital / Drawings</h2>
+              <h2 id="mm-dialog-1" className="text-xl font-bold text-slate-900 dark:text-slate-100">Add Capital / Drawings</h2>
               <button onClick={() => setShowCapital(false)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"><X className="h-5 w-5" /></button>
             </div>
             <form onSubmit={handleSaveCapital} className="space-y-4">
@@ -397,19 +397,19 @@ export default function AccountsPage() {
                 </button>
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-500 block mb-1">Amount (₹)</label>
-                <input required type="number" min="0" step="0.01" value={capitalForm.amount} onChange={e => setCapitalForm({ ...capitalForm, amount: e.target.value })}
+                <label htmlFor="mm-amount-2" className="text-xs font-medium text-slate-500 block mb-1">Amount (₹)</label>
+                <input id="mm-amount-2" required type="number" min="0" step="0.01" value={capitalForm.amount} onChange={e => setCapitalForm({ ...capitalForm, amount: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="0" autoFocus />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-slate-500 block mb-1">Date</label>
-                  <input required type="date" max={todayStr()} value={capitalForm.date} onChange={e => setCapitalForm({ ...capitalForm, date: e.target.value })}
+                  <label htmlFor="mm-date" className="text-xs font-medium text-slate-500 block mb-1">Date</label>
+                  <input id="mm-date" required type="date" max={todayStr()} value={capitalForm.date} onChange={e => setCapitalForm({ ...capitalForm, date: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark outline-none focus:ring-2 focus:ring-brand text-sm" />
                 </div>
                 <div>
-                  <label className="text-xs font-medium text-slate-500 block mb-1">Account</label>
-                  <select value={capitalForm.account} onChange={e => setCapitalForm({ ...capitalForm, account: e.target.value as 'cash' | 'bank' })}
+                  <label htmlFor="mm-account" className="text-xs font-medium text-slate-500 block mb-1">Account</label>
+                  <select id="mm-account" value={capitalForm.account} onChange={e => setCapitalForm({ ...capitalForm, account: e.target.value as 'cash' | 'bank' })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark outline-none focus:ring-2 focus:ring-brand text-sm">
                     <option value="cash">Cash</option>
                     <option value="bank">Bank</option>
@@ -417,12 +417,12 @@ export default function AccountsPage() {
                 </div>
               </div>
               <div>
-                <label className="text-xs font-medium text-slate-500 block mb-1">Note (optional)</label>
-                <input value={capitalForm.note} onChange={e => setCapitalForm({ ...capitalForm, note: e.target.value })}
+                <label htmlFor="mm-note-optional" className="text-xs font-medium text-slate-500 block mb-1">Note (optional)</label>
+                <input id="mm-note-optional" value={capitalForm.note} onChange={e => setCapitalForm({ ...capitalForm, note: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-brand-dark outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="e.g. Added savings to business" />
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="ghost" size="sm" onClick={() => setShowCapital(false)}>Cancel</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setShowCapital(false)}>Cancel</Button>
                 <Button type="submit" size="sm">Save</Button>
               </div>
             </form>

@@ -50,6 +50,19 @@ Related docs: [Active-Tasks.md](Active-Tasks.md) (product roadmap) · root `MEMO
 | Live Pages now serves the migrated UI: `v7.3.0.50`, and the 6 chunks that carry "Publishable key" locally serve it byte-for-byte live; the old JWT placeholder appears in 0 live chunks | `curl …/moneymeva/ \| grep app-version` |
 | The deployed artifact bakes **no** Supabase config — 0 `supabase.co` strings live vs 8 in a local build | see §5 |
 
+## 2c. DONE — verification pass before this push (2026-11-26)
+
+| Item | Evidence |
+|---|---|
+| Every route driven in a headless browser against the static build, both themes × all three brand presets | 96 iframe loads: 26 routes × light/dark × orange, plus 11 brand-sensitive routes × light/dark × blue/green — 8,056 text leaves |
+| WCAG AA measured, not eyeballed — including painted gradients (colour stops sampled, translucent stops composited over their backdrop, worst stop scored) | 0 failures at the end of the 96-load re-run; 18 found on the first run, each turned into a source fix |
+| Leaves unreachable by a load-only sweep are now *reached*: clicks into What's-New, Forgot password, Add transaction, Developer gate → Start Fresh → PIN prompt | developer page measured past its "I Understand, Continue" gate: 141 leaves (4 while gated); its red-100 panel chips failed at **4.34:1** and became `text-red-700`; 0 hits on re-drill in light + dark |
+| Scroll-reveal content counted instead of skipped | `.reveal` force-revealed before measuring (`i=0` on every route after the fix) — this is what exposed the 3.82:1 `opacity-90` labels on the green preset |
+| Harness corrections that were **not** app defects | `/20`–`/30` gradient stops read as opaque (54 false failures), `transition-colors` sampled mid-flight ("Continue with Google" 1.46:1 → live `slate-300` 5.9:1), disabled controls counted (exempt under WCAG 1.4.3) |
+| Field labels confirmed in the running UI, not in source | `/dashboard/settings` innerText contains "Publishable key", 0 matches for "anon key" |
+| Rebuilt and re-derived after the changes | `npm run build` → 29 static pages, `VERSION` v7.3.0.76 baked into `out/index.html`; `npx tsc --noEmit` exit 0; `npm run lint` → 318 problems (244 errors / 74 warnings) — unchanged, no new debt |
+| The 292 KB logo every page was paying for | `public/favicon.jpg` (1000×1000) was rendered by `src/app/loading.tsx`, whose `<img>` React hoists into `<link rel="preload" as="image">` — present in all 28 exported page heads, and Chrome warned it was never used. Replaced at the 7 call sites by `public/favicon-256.jpg` (256×256, 7,630 B, same artwork, lanczos); master kept as source. `grep -rl 'href="/favicon.jpg"' out --include=*.html` → 0 |
+
 ## 3. BLOCKED-ON-YOU — cannot be done from the repo
 
 - [!] **GitHub still has ZERO secrets configured.** `gh secret list` → empty, and the only environment (`github-pages`) has no secrets either. So `secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` resolves to an empty string and CI builds bake no cloud config. This was already true of `..._ANON_KEY` before the rename — the web/APK artifacts from Actions have been shipping cloud-free all along, and today's deploy is no exception: anyone connecting from the hosted site must paste URL + key in Settings themselves. Decide: create the secret, or state plainly in the docs that Actions never bakes keys (see §4, changelog claim).
@@ -67,7 +80,7 @@ Deploy pipeline:
 - [ ] `docs/Changelog.md:27` claims Actions bakes the Supabase URL/key "from repo secrets" — no such secrets exist; correct the claim or add the secrets (ledger is append-only, so fix forward in a new entry)
 - [ ] If baked sync is *not* wanted, make that explicit in `README.md` / `SELF-HOSTING.md` instead of leaving the workflows referencing secrets that resolve to empty strings
 
-Lint backlog, now that it is readable (246 errors / 72 warnings):
+Lint backlog, now that it is readable (244 errors / 74 warnings):
 - [ ] `@typescript-eslint/no-explicit-any` — 164 sites, concentrated in `src/lib/store.ts`, `src/lib/pouchdb.ts`
 - [ ] `@typescript-eslint/no-unused-vars` — 46 (safe to sweep first)
 - [ ] `react-hooks/set-state-in-effect` — 32 (e.g. `src/app/dashboard/about/page.tsx:17`)
@@ -78,7 +91,7 @@ Error handling:
 - [ ] 62 empty `catch {}` blocks swallow failures, including user-visible paths: audit import `src/app/dashboard/settings/page.tsx:1355`, session restore `src/app/login/page.tsx:100,112,175`, wizard step checks `src/components/CloudSetupWizard.tsx:17,84,98` — Setup Guide can report false success
 
 Version/release process:
-- [ ] Unify the release identity: `VERSION` v7.3.0.49 vs `android/app/build.gradle:11` versionName "7.2.0.33" — only the `android:apk` script syncs them, so an APK built outside that path ships a stale version
+- [ ] Unify the release identity: `VERSION` v7.3.0.76 vs `android/app/build.gradle:11` versionName "7.2.0.33" — only the `android:apk` script syncs them, so an APK built outside that path ships a stale version
 - [ ] `docs/Changelog.md` uses a `v7.3.x` scheme while `VERSION` uses `v7.3.0.N` — pick one and record it
 - [ ] Add a `CHANGELOG`/`CHANGES.md` ledger entry for the publishable-key migration (needs a release number from you)
 
@@ -86,8 +99,11 @@ Tests (currently zero — no `test` script, no test files):
 - [ ] Smallest useful start: `node --test` unit tests for `releaseBase`/`shouldShowWhatsNew`, `cleanSupabaseUrl`, and the sync push/pull error mapping
 
 Docs vs reality:
-- [ ] `docs/File-Map.md` omits shipped routes `dashboard/developer`, `support`, `terms`, `privacy` and ~10 components (verified by grep: 0 hits for `developer`/`support`/`terms`/`privacy`)
+- [x] `docs/File-Map.md` rewritten against the tree — the previously missing routes
+      (`dashboard/developer`, `support`, `terms`, `privacy`) and the new
+      `csv-import`/`legal` modules are all in it now (grep: 1/1/4/4/1/6 hits)
 - [ ] Offline story: `src/components/RegisterSW.tsx:7-14` and `public/sw.js` intentionally *unregister* the service worker and purge caches, while `README.md:337` promises "works fully offline" and `public/manifest.webmanifest` still offers install — reword the claim or add real caching
+- [ ] Two different logos ship side by side: the in-app mark (`public/favicon*.jpg` — dark disc, low-poly orange M, coins) and the PWA/app icon set (`public/icon-*.png`, `icon.svg`, generated from the ₹ tile by `scripts/generate-web-icons.mjs`). Both are wired — installed icon and loading screen never appear together, so nobody notices. Pick one identity or document why they differ.
 - [ ] Orphaned config nothing references: `netlify.toml`, `bookmarklet.txt` — confirm before deleting
 
 Product roadmap (mirrors [Active-Tasks.md](Active-Tasks.md)):
@@ -99,21 +115,26 @@ Product roadmap (mirrors [Active-Tasks.md](Active-Tasks.md)):
 
 ```bash
 git status --short                    # empty = everything committed
-git log --oneline -1                  # 4fce3ac refactor: adopt Supabase publishable API key…
+git log --oneline -1                  # the verification-pass commit (§2c), on top of d6883b8
 git ls-files tsconfig.tsbuildinfo     # empty = artifact untracked
-cat VERSION; node -p "require('./package.json').version"   # v7.3.0.49 / 7.3.0
+cat VERSION; node -p "require('./package.json').version"   # v7.3.0.76 / 7.3.0
 
 # old name must survive only in append-only ledgers and the legacy-key note
 grep -rn "SUPABASE_ANON_KEY" src Dockerfile .github .env.example        # expect no hits
 grep -rn "anon key" --include="*.md" . | grep -v node_modules | grep -vi legacy
 #   expect only: MEMORY-CAPSULE.md, docs/Changelog.md (both append-only) and this file
 
-npm run build      # must compile, typecheck, generate 29 static pages
-npm run lint       # 318 problems (246 errors) — generated dirs now excluded
+npm run build      # must compile; 29 static pages (26 app routes + 404/not-found)
+npm run lint       # 318 problems (244 errors / 74 warnings) — generated dirs now excluded
 npx tsc --noEmit   # exit 0
 grep -rl "sb_publishable_" out/ | wc -l     # 6 → new UI strings are in the bundle
 grep -rl "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" out/ | wc -l   # 2 → baked key still wired
 grep -rl "anon key shares one database" out/ | wc -l           # 0 → stale release notes gone
+
+# page payload (§2c): every exported page preloads whatever loading.tsx renders as an <img>
+grep -o '<link rel="preload" href="/favicon[^>]*>' out/dashboard.html   # → favicon-256.jpg, not favicon.jpg
+grep -rl 'href="/favicon.jpg"' out --include="*.html" | wc -l           # 0 → the 292 KB mark is no longer requested
+ls -l public/favicon.jpg public/favicon-256.jpg | awk '{print $5, $9}'  # 299310 source, 7630 shipped
 
 # what is actually deployed (§2b)
 gh run list --repo kuldeep7ke/moneymeva --limit 3   # CI 45658520194, Pages 45658520178, APK 45658520206 — all success
@@ -124,6 +145,12 @@ for u in $(curl -s https://kuldeep7ke.github.io/moneymeva/dashboard/ | grep -oE 
 curl -s https://moneymevaonline.pages.dev/ | grep -o 'app-version" content="[^"]*"'                   # v7.3.0.45 → Cloudflare not rebuilt
 ```
 
-Untested here (needs a browser session with local data): the What's-New popup
-behaviour and the renamed Settings/Developer field labels were verified at build-artifact
-level, not by driving the UI.
+Driven in the browser on 2026-11-26 (see §2c): all 26 routes in both themes and all three presets,
+plus the click-reached surfaces — What's-New popup (shows 5s after settle; dismiss writes
+`mm_seen_release`), forgot-password dialog, Add-transaction modal, the Developer zone past its
+gate with its Start-Fresh modal and the PIN prompt, and the Settings credential labels.
+
+Still not testable from this machine: real cloud sync (Settings points at `127.0.0.1:9` with a
+sentinel key while local testing runs — see §3 for the key that is actually needed), the
+Capacitor/APK paths (native notifications, hardware back button), and remote announcement content,
+which comes from a bin this build cannot reach. Those three are the honest boundary of the pass.

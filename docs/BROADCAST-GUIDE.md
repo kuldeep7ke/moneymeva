@@ -13,7 +13,7 @@ You edit JSON on jsonbin.io  →  Cloudflare edge caches it (3 h)  →  apps fet
 
 - Apps fetch from the site's own `/api/announcements` endpoint — a Cloudflare Pages Function that edge-caches responses for `TTL_MINUTES` (currently 180 = 3 hours), so jsonbin request volume depends on time only, never on user count (protects the free quota)
 - Works everywhere the app runs — web AND the Android APK (no app-store update required)
-- Local `public/broadcast.json` / `public/banner.json` are legacy fallbacks only — jsonbin.io is now the source of truth
+- There is **no bundled fallback file** — `public/broadcast.json` and `public/banner.json` were deleted (nothing in `src/` ever read them). jsonbin.io, reached through `/api/announcements`, is the only source. If it is unreachable the pill/banner simply does not render.
 
 ---
 

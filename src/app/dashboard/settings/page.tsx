@@ -27,6 +27,7 @@ import { dispatchSyncEvent, listenSyncEvents } from '@/lib/sync-notify';
 import { downloadFile, copyText, printHtml } from '@/lib/download';
 import { NOTIFICATION_KEYS, POPUP_KEYS, getNotifyPrefs, setNotifyPref, resetNotifyPrefs } from '@/lib/notification-prefs';
 import { createProgressOverlay } from '@/lib/progressOverlay';
+import { importTransactionsFromCsv } from '@/lib/csv-import';
 import { useToast } from '@/components/Toast';
 export default function SettingsPage() {
   const toast = useToast();
@@ -430,7 +431,7 @@ export default function SettingsPage() {
                 <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 text-xs rounded-full font-medium">Edit Profile</span>
               </div>
               <Link href="/?from=dashboard">
-                <Button size="sm" className="mt-3 bg-brand hover:bg-orange-600 gap-2">
+                <Button size="sm" className="mt-3 bg-brand hover:bg-brand-hover gap-2">
                   <ExternalLink className="h-3.5 w-3.5" /> Open Landing Page
                 </Button>
               </Link>
@@ -488,7 +489,7 @@ export default function SettingsPage() {
                         {(key === 'recurring' || key === 'credit') && (
                           <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">Recommended</span>
                         )}
-                        <button onClick={() => toggleNotif(key, !on)}
+                        <button type="button" role="switch" aria-checked={on} aria-label={`${key === 'tips' ? 'Tips & reminders' : key} notifications`} onClick={() => toggleNotif(key, !on)}
                           className={cn("relative w-10 h-6 rounded-full transition-colors", on ? "bg-emerald-500" : "bg-slate-300 dark:bg-brand-muted")}>
                           <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform", on ? "left-[18px]" : "left-0.5")} />
                         </button>
@@ -507,7 +508,7 @@ export default function SettingsPage() {
                   return (
                     <div key={key} className="flex items-center justify-between rounded-xl bg-white dark:bg-brand-muted/60 border border-slate-200 dark:border-brand-muted px-3 py-2">
                         <span className="text-sm text-slate-700 dark:text-slate-200 capitalize">{key === 'credit' ? 'Credit Alerts' : key.replace('-', ' ')}</span>
-                        <button onClick={() => toggleNotif(key, !on)}
+                        <button type="button" role="switch" aria-checked={on} aria-label={`${key === 'credit' ? 'Credit Alerts' : key.replace('-', ' ')} popups`} onClick={() => toggleNotif(key, !on)}
                         className={cn("relative w-10 h-6 rounded-full transition-colors", on ? "bg-emerald-500" : "bg-slate-300 dark:bg-brand-muted")}>
                         <span className={cn("absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform", on ? "left-[18px]" : "left-0.5")} />
                       </button>
@@ -603,7 +604,7 @@ export default function SettingsPage() {
                 {!syncConnected && (
                   <div className="bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800 rounded-xl p-3 text-xs space-y-1">
                     <p className="font-semibold text-sky-800 dark:text-sky-300">Shared database — no email/password</p>
-                    <p className="text-sky-700/80 dark:text-sky-300/70">
+                    <p className="text-sky-700 dark:text-sky-300/70">
                       Every device that connects with this project URL + publishable key shares the <strong>same</strong> data
                       (older CouchDB-style sync). No accounts, no sign-in. For a brand-new project you must first create
                       the sync table — open the <strong>Setup Guide</strong> above and tap <strong>Copy SQL</strong>, then run it in
@@ -698,7 +699,7 @@ export default function SettingsPage() {
             <Upload className="h-12 w-12 text-brand mx-auto" />
             <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Import CSV</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400">Upload transactions from a CSV file</p>
-            <label className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-orange-600">
+            <label className="inline-flex cursor-pointer items-center justify-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-hover">
               Choose CSV File
               <input type="file" accept=".csv" className="hidden" name="csv-import" onChange={(e) => {
                 const file = e.target.files?.[0];
@@ -706,37 +707,23 @@ export default function SettingsPage() {
                 const reader = new FileReader();
                 reader.onload = () => {
                   const text = reader.result as string;
-                  const lines = text.split('\n').filter(l => l.trim());
-                  const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-                  const dateIdx = headers.findIndex(h => h === 'date');
-                  const amountIdx = headers.findIndex(h => h === 'amount');
-                  const catIdx = headers.findIndex(h => h === 'category');
-                  const descIdx = headers.findIndex(h => h === 'description' || h === 'desc' || h === 'note' || h === 'notes');
-                  const typeIdx = headers.findIndex(h => h === 'type');
-                  const partnerIdx = headers.findIndex(h => h === 'partnerid' || h === 'partner');
-                  const csvUnesc = (v: string) => { const t = v.trim(); if (t.startsWith('"') && t.endsWith('"')) return t.slice(1, -1).replace(/""/g, '"'); return t; };
-                  let imported = 0;
                   const overlay = createProgressOverlay('Importing CSV…');
                   setTimeout(async () => {
                     try {
-                      const total = Math.max(lines.length - 1, 1);
-                      const partners = getPartners();
-                      for (let i = 1; i < lines.length; i++) {
-                        const cols = lines[i].split(',').map(c => csvUnesc(c));
-                        const date = dateIdx >= 0 ? cols[dateIdx] : todayStr();
-                        const amount = parseFloat(amountIdx >= 0 ? cols[amountIdx] : '0');
-                        const category = catIdx >= 0 ? cols[catIdx] : 'Other';
-                        const description = descIdx >= 0 ? cols[descIdx] : '';
-                        let type = typeIdx >= 0 ? cols[typeIdx].toLowerCase() : 'expense';
-                        type = ['income', 'expense', 'investment'].includes(type) ? type : 'expense';
-                        if (!amount || isNaN(amount)) continue;
-                        const partnerAccountId = partnerIdx >= 0 && cols[partnerIdx] ? (partners.find((p: any) => p.id === cols[partnerIdx]) || partners.find((p: any) => p.name.trim().toLowerCase() === cols[partnerIdx].trim().toLowerCase()))?.id : undefined;
-                        addTransaction({ amount, type: type as any, category, description, date, partnerAccountId, isRecurring: false });
-                        imported++;
-                        if (i % 25 === 0) overlay.update(`Importing transactions… ${imported} added`, i, total);
+                      const result = importTransactionsFromCsv(text, getPartners(), (done, total) => overlay.update(`Importing transactions… ${done} added`, done, total));
+                      if (!result.ok) {
+                        overlay.error(result.error || 'CSV import failed', () => overlay.close());
+                        toast(result.error || 'CSV import failed', 'error');
+                      } else {
+                        const { imported, skipped } = result;
+                        const summary = skipped.length
+                          ? `${imported} added · ${skipped.length} row${skipped.length > 1 ? 's' : ''} skipped`
+                          : `CSV import complete — ${imported.toLocaleString()} transactions added`;
+                        overlay.finish(summary, () => overlay.close());
+                        toast(imported === 0 && skipped.length === 0 ? 'No rows to import from this CSV.' : summary, skipped.length ? 'warning' : 'success');
+                        if (skipped.length) console.warn('CSV rows skipped:', skipped.slice(0, 20));
+                        logActivity('entry_imported', `CSV import — ${imported} added, ${skipped.length} skipped`);
                       }
-                      overlay.finish(`CSV import complete — ${imported.toLocaleString()} transactions added`, () => overlay.close());
-                      toast(`Imported ${imported} transaction(s) from CSV.`, 'success');
                     } catch {
                       overlay.error('CSV import failed', () => overlay.close());
                     }
@@ -908,7 +895,7 @@ export default function SettingsPage() {
                     <div className="bg-white dark:bg-brand-dark rounded-xl border border-slate-200 dark:border-brand-muted p-4">
                       <div className="flex items-center justify-between mb-3">
                         <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Your PINs — save these now</p>
-                        <button onClick={() => setShowPins(!showPins)} className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                        <button aria-label={showPins ? 'Hide password' : 'Show password'} aria-pressed={showPins} onClick={() => setShowPins(!showPins)} className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                           {showPins ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
                       </div>
@@ -992,7 +979,7 @@ export default function SettingsPage() {
               <AlertTriangle className="h-6 w-6 text-red-500 shrink-0" />
               <div>
                 <h3 className="text-lg font-bold text-red-700 dark:text-red-400">Danger Zone</h3>
-                <p className="text-sm text-red-600 dark:text-red-300">Destructive actions that cannot be undone</p>
+                <p className="text-sm text-red-700 dark:text-red-300">Destructive actions that cannot be undone</p>
               </div>
             </div>
 
@@ -1061,16 +1048,16 @@ export default function SettingsPage() {
 
       {/* Final Confirmation Modal */}
       {clearStep === 'confirm' && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md overflow-y-auto flex items-start sm:items-center justify-center z-[130] p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-21" className="fixed inset-0 bg-black/60 backdrop-blur-md overflow-y-auto flex items-start sm:items-center justify-center z-[130] p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full shadow-2xl border-2 border-red-400 dark:border-red-600 overflow-hidden my-4">
             <div className="bg-gradient-to-r from-red-600 to-red-700 px-6 py-5 text-center">
               <div className="mx-auto w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mb-3">
                 <Trash2 className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white">
+              <h3 id="mm-dialog-21" className="text-xl font-bold text-white">
                 {clearMode === 'user-data' ? 'Clear User Data' : 'Clear All Data'}
               </h3>
-              <p className="text-sm text-red-100 mt-1">This action cannot be undone</p>
+              <p className="text-sm text-white mt-1">This action cannot be undone</p>
             </div>
             <div className="p-6 space-y-5">
               <div className="bg-red-50 dark:bg-red-950/40 rounded-xl p-4 border border-red-200 dark:border-red-800 space-y-3">
@@ -1115,14 +1102,14 @@ export default function SettingsPage() {
 
       {/* PIN Confirmation Modal */}
       {showPinsConfirm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto flex items-start sm:items-center justify-center z-[130] p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-22" className="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto flex items-start sm:items-center justify-center z-[130] p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full shadow-2xl border border-amber-300 dark:border-amber-700 overflow-hidden my-4">
-            <div className="bg-gradient-to-r from-amber-500 to-orange-600 px-6 py-5 text-center">
+            <div className="bg-gradient-to-r from-amber-700 to-orange-800 px-6 py-5 text-center">
               <div className="mx-auto w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mb-3">
                 <Key className="h-7 w-7 text-white" />
               </div>
-              <h3 className="text-xl font-bold text-white">Confirm PIN Backup</h3>
-              <p className="text-sm text-amber-100 mt-1">This is your last chance to save your PINs</p>
+              <h3 id="mm-dialog-22" className="text-xl font-bold text-white">Confirm PIN Backup</h3>
+              <p className="text-sm text-white mt-1">This is your last chance to save your PINs</p>
             </div>
             <div className="p-6 space-y-5">
               <div className="bg-amber-50 dark:bg-amber-950/40 rounded-xl p-4 border border-amber-200 dark:border-amber-800 space-y-3">
@@ -1191,13 +1178,13 @@ export default function SettingsPage() {
 
       {/* Sync Failure Popup */}
       {showSyncFailPopup && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[130] p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-23" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[130] p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden">
             <div className="p-6 text-center">
               <div className="mx-auto w-14 h-14 rounded-full bg-sky-50 dark:bg-sky-900/30 flex items-center justify-center mb-4">
                 <Cloud className="h-7 w-7 text-sky-500" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Sync Unavailable</h3>
+              <h3 id="mm-dialog-23" className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">Sync Unavailable</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
                 We were unable to establish a connection to the sync server. This may be due to a temporary network issue, incorrect credentials, or your Supabase project's free tier limits.
               </p>
@@ -1219,7 +1206,7 @@ export default function SettingsPage() {
 
       {/* Import Warning Modal */}
       {importConfirm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto flex items-start sm:items-center justify-center z-50 p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-24" className="fixed inset-0 bg-black/50 backdrop-blur-sm overflow-y-auto flex items-start sm:items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full shadow-2xl my-4">
             <div className="p-6 border-b border-slate-200 dark:border-brand-muted">
               <div className="flex items-center gap-3">
@@ -1227,7 +1214,7 @@ export default function SettingsPage() {
                   <AlertCircle className="h-6 w-6 text-amber-500" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Different User Backup</h3>
+                  <h3 id="mm-dialog-24" className="text-lg font-bold text-slate-900 dark:text-slate-100">Different User Backup</h3>
                   <p className="text-sm text-slate-500 dark:text-slate-400">This backup belongs to another user</p>
                 </div>
               </div>

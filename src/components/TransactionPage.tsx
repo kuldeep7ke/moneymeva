@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import DashboardLayout from '@/components/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, Trash2, Undo2, AlertTriangle, ArrowUpDown, X, Archive, SlidersHorizontal, Pencil, TrendingUp, TrendingDown, Calculator, CreditCard } from 'lucide-react';
+import { Plus, Search, Trash2, Undo2, AlertTriangle, ArrowUpDown, X, Archive, SlidersHorizontal, Pencil, TrendingUp, TrendingDown, Calculator, CreditCard, SearchX } from 'lucide-react';
 import { formatCurrency, cn, getSortedCategories, todayStr } from '@/lib/utils';
 import { TransactionType, Transaction } from '@/types';
 import { getTransactions, addTransaction, updateTransaction, deleteTransaction, restoreTransaction, permanentDeleteTransaction, getArchivedTransactions, getPartners, addPartner, checkDuplicateTransaction, addAdjustment, isStoreReady } from '@/lib/store';
@@ -43,6 +43,7 @@ export default function TransactionPage({ type, title, description, titleKey }: 
   const [showCalculator, setShowCalculator] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [pinArchiveAction, setPinArchiveAction] = useState<{ id: string; action: 'restore' | 'delete' } | null>(null);
+  const [archiveConfirmId, setArchiveConfirmId] = useState<string | null>(null);
   const [pinEditAction, setPinEditAction] = useState<Transaction | null>(null);
   const [pinDeleteId, setPinDeleteId] = useState<string | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
@@ -134,11 +135,11 @@ export default function TransactionPage({ type, title, description, titleKey }: 
 
   const openEdit = (tx: Transaction) => {
     setEditingTransaction(tx);
-    setEditForm({ amount: String(tx.amount), category: tx.category, description: tx.description, date: tx.date, partnerAccountId: tx.partnerAccountId || '', party: tx.partnerAccountId ? (partners.find(p => p.id === tx.partnerAccountId)?.name || '') : '' });
+    setEditForm({ amount: String(tx.amount), category: tx.category, description: tx.description, date: tx.date, partnerAccountId: tx.partnerAccountId || '', party: tx.partnerAccountId ? (partners.find(p => p.id === tx.partnerAccountId)?.name || '') : '', account: tx.account || 'cash' });
     parseEditMeta(tx.description);
   };
 
-  const [editForm, setEditForm] = useState({ amount: '', category: '', description: '', date: '', partnerAccountId: '', party: '' });
+  const [editForm, setEditForm] = useState({ amount: '', category: '', description: '', date: '', partnerAccountId: '', party: '', account: 'cash' as 'cash' | 'bank' | 'upi' | 'credit' | 'invest' });
   const [editInvestMeta, setEditInvestMeta] = useState({ fundName: '', nav: '', units: '', mode: 'lumpsum' as string, institution: '', fdNumber: '', interestRate: '', tenure: '', maturityDate: '', payout: 'cumulative' as string, fdType: 'cumulative' as string, company: '', quantity: '', buyPrice: '', exchange: 'NSE' as string, stockMode: 'delivery' as string });
 
   const parseEditMeta = (desc: string) => {
@@ -254,8 +255,14 @@ export default function TransactionPage({ type, title, description, titleKey }: 
 
   const doEdit = (id: string) => {
     if (editForm.date > todayStr()) { toast('Cannot set entries to future dates.', 'warning'); return; }
+    if ((type === 'income' || type === 'expense') && editForm.account === 'credit' && !editForm.partnerAccountId) {
+      toast(type === 'expense' ? 'Credit purchases require a Party (the shop you owe).' : 'Credit sales require a Party (who owes you).', 'warning'); return;
+    }
     const desc = buildEditDescription();
-    updateTransaction(id, { amount: Number(editForm.amount), category: editForm.category, description: desc, date: editForm.date, partnerAccountId: editForm.partnerAccountId || undefined });
+    const updates: Partial<Transaction> = { amount: Number(editForm.amount), category: editForm.category, description: desc, date: editForm.date, partnerAccountId: editForm.partnerAccountId || undefined };
+    // Investment rows derive their account from the fund source, so leave it untouched there.
+    if (type !== 'investment') updates.account = editForm.account;
+    updateTransaction(id, updates);
     saveCategoryToLocalStorage(editForm.category);
     logActivity('entry_edited', `${type} — ${editForm.category}`);
     toast(`${type[0].toUpperCase() + type.slice(1)} updated · ${editForm.category} · ${formatCurrency(Number(editForm.amount))}`, 'success');
@@ -432,6 +439,12 @@ export default function TransactionPage({ type, title, description, titleKey }: 
       });
   }, [transactions, search, filterCategory, filterDateFrom, filterDateTo, filterMinAmount, filterMaxAmount, creditOnly, sortField, sortDir]);
 
+  const activeFilterCount = [filterCategory, filterDateFrom, filterDateTo, filterMinAmount, filterMaxAmount, search].filter(Boolean).length + (creditOnly ? 1 : 0);
+
+  const clearAllFilters = () => {
+    setSearch(''); setFilterCategory(''); setFilterDateFrom(''); setFilterDateTo(''); setFilterMinAmount(''); setFilterMaxAmount(''); setCreditOnly(false);
+  };
+
   // A "Credit Settlement" leg on a real account (cash/bank/UPI) is the actual
   // payment/receipt — hidden from the section lists (it still affects account
   // balances and the party ledger, and totals exclude all settlement rows).
@@ -541,6 +554,24 @@ export default function TransactionPage({ type, title, description, titleKey }: 
     return partners.filter(p => p.name.toLowerCase().includes(search));
   }, [partySearch, recentParties, partners]);
 
+  // Two very different "nothing here" cases: an empty section vs. filters that
+  // exclude every row. The copy used to be identical, which pushed users to add
+  // data instead of clearing the filter that hid it.
+  const emptyState = (addHint: string) => activeFilterCount > 0 ? (
+    <>
+      <SearchX className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+      <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">Nothing matches your filters</p>
+      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active · {transactions.length} hidden</p>
+      <Button variant="outline" size="sm" onClick={clearAllFilters} className="mt-4 text-xs">Clear Filters</Button>
+    </>
+  ) : (
+    <>
+      <TrendingUp className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+      <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">No {type} entries yet</p>
+      <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">{addHint}</p>
+    </>
+  );
+
   return (
     <DashboardLayout>
       <div className="space-y-8">
@@ -552,18 +583,18 @@ export default function TransactionPage({ type, title, description, titleKey }: 
               <p className="text-slate-500 dark:text-slate-400 hidden md:block">{description}</p>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setShowArchive(!showArchive)} className="h-10 w-10 md:w-auto md:px-3 rounded-xl border border-slate-200 dark:border-brand-muted flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200 dark:hover:border-red-800 transition-colors relative gap-1.5" type="button">
+              <button onClick={() => setShowArchive(!showArchive)} aria-label="Toggle archive panel" aria-expanded={showArchive} className="h-10 w-10 md:w-auto md:px-3 rounded-xl border border-slate-200 dark:border-brand-muted flex items-center justify-center text-slate-400 hover:text-red-500 hover:border-red-200 dark:hover:border-red-800 transition-colors relative gap-1.5" type="button">
                 <Archive className="h-4 w-4" />
                 <span className="hidden md:inline text-xs font-medium">Archive</span>
                 {archived.length > 0 && <span className="absolute -top-1 -right-1 md:static md:ml-0 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">{archived.length}</span>}
               </button>
               {type === 'investment' && (
-                <button onClick={() => setShowCalculator(true)} className="h-10 w-10 md:w-auto md:px-3 rounded-xl border border-brand/30 dark:border-brand/40 flex items-center justify-center text-brand hover:bg-brand/10 transition-colors gap-1.5" type="button" title="Investment Calculator">
+                <button onClick={() => setShowCalculator(true)} aria-label="Open investment calculator" className="h-10 w-10 md:w-auto md:px-3 rounded-xl border border-brand/30 dark:border-brand/40 flex items-center justify-center text-brand hover:bg-brand/10 transition-colors gap-1.5" type="button" title="Investment Calculator">
                   <Calculator className="h-4 w-4" />
                   <span className="hidden md:inline text-xs font-medium">Calculator</span>
                 </button>
               )}
-              <button onClick={() => setShowAddModal(true)} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-orange-600 transition-colors active:scale-95" type="button" title="Add">
+              <button onClick={() => setShowAddModal(true)} aria-label={`Add ${type === 'income' ? 'income' : type === 'investment' ? 'investment' : 'expense'}`} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-brand-hover transition-colors active:scale-95" type="button" title="Add">
                 <Plus className="h-5 w-5 icon-bounce" />
               </button>
             </div>
@@ -577,7 +608,7 @@ export default function TransactionPage({ type, title, description, titleKey }: 
               <h3 className="font-bold text-amber-800 dark:text-amber-300 flex items-center gap-2">
                 <Archive className="h-4 w-4" /> Archive
               </h3>
-              <button onClick={() => setShowArchive(false)} className="h-8 w-8 rounded-lg flex items-center justify-center text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-800/50 transition-colors"><X className="h-4 w-4" /></button>
+              <button onClick={() => { setShowArchive(false); setArchiveConfirmId(null); }} aria-label="Close archive panel" className="h-8 w-8 rounded-lg flex items-center justify-center text-amber-600 hover:bg-amber-100 dark:hover:bg-amber-800/50 transition-colors"><X className="h-4 w-4" /></button>
             </div>
             {archived.length === 0 ? (
               <div className="px-6 py-10 text-center">
@@ -595,14 +626,24 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                     </div>
                     <p className="text-sm font-bold text-amber-700 dark:text-amber-400 shrink-0 mr-3">{formatCurrency(t.amount)}</p>
                     <div className="flex items-center gap-1 shrink-0">
-                      <button className="p-1.5 rounded-lg text-amber-600 hover:text-green-600 hover:bg-amber-100 dark:hover:bg-amber-800/50 transition-colors gap-1" onClick={() => { if (hasPins()) setPinArchiveAction({ id: t.id, action: 'restore' }); else handleRestore(t.id); }}>
-                        <Undo2 className="h-3.5 w-3.5" />
-                        <span className="hidden md:inline text-xs">Restore</span>
-                      </button>
-                      <button className="p-1.5 rounded-lg text-amber-600 hover:text-red-600 hover:bg-amber-100 dark:hover:bg-amber-800/50 transition-colors gap-1" onClick={() => { if (hasPins()) setPinArchiveAction({ id: t.id, action: 'delete' }); else handlePermanentDelete(t.id); }}>
-                        <Trash2 className="h-3.5 w-3.5" />
-                        <span className="hidden md:inline text-xs">Delete</span>
-                      </button>
+                      {archiveConfirmId === t.id ? (
+                        <>
+                          <span className="text-xs font-medium text-red-700 dark:text-red-300">Delete forever?</span>
+                          <Button size="sm" variant="danger" className="h-7 px-2 text-xs" onClick={() => { handlePermanentDelete(t.id); setArchiveConfirmId(null); }}>Yes</Button>
+                          <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => setArchiveConfirmId(null)}>No</Button>
+                        </>
+                      ) : (
+                        <>
+                          <button aria-label={`Restore ${t.category} entry`} className="p-1.5 rounded-lg text-amber-600 hover:text-green-600 hover:bg-amber-100 dark:hover:bg-amber-800/50 transition-colors gap-1" onClick={() => { if (hasPins()) setPinArchiveAction({ id: t.id, action: 'restore' }); else handleRestore(t.id); }}>
+                            <Undo2 className="h-3.5 w-3.5" />
+                            <span className="hidden md:inline text-xs">Restore</span>
+                          </button>
+                          <button aria-label={`Permanently delete ${t.category} entry`} className="p-1.5 rounded-lg text-amber-600 hover:text-red-600 hover:bg-amber-100 dark:hover:bg-amber-800/50 transition-colors gap-1" onClick={() => { if (hasPins()) setPinArchiveAction({ id: t.id, action: 'delete' }); else setArchiveConfirmId(t.id); }}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span className="hidden md:inline text-xs">Delete</span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -615,26 +656,23 @@ export default function TransactionPage({ type, title, description, titleKey }: 
           <div className="flex items-center gap-3 flex-wrap">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500" />
-              <input value={search} onChange={e => setSearch(e.target.value)}
+              <input value={search} onChange={e => setSearch(e.target.value)} aria-label={type === 'income' ? 'Search income' : type === 'investment' ? 'Search investments' : 'Search expenses'}
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted dark:bg-[#2A2522] dark:text-slate-100 outline-none focus:ring-2 focus:ring-brand text-sm"
                 placeholder={type === 'income' ? 'Search income...' : type === 'investment' ? 'Search investments...' : 'Search expenses...'} />
             </div>
             <button onClick={() => {
-                const count = [filterCategory, filterDateFrom, filterDateTo, filterMinAmount, filterMaxAmount, search].filter(Boolean).length;
-                if (count > 0) {
-                  setSearch(''); setFilterCategory(''); setFilterDateFrom(''); setFilterDateTo(''); setFilterMinAmount(''); setFilterMaxAmount(''); setCreditOnly(false); setSortField('date'); setSortDir('desc');
-                  setShowFilters(false);
+                if (activeFilterCount > 0) {
+                  clearAllFilters(); setSortField('date'); setSortDir('desc'); setShowFilters(false);
                 } else {
                   setShowFilters(!showFilters);
                 }
-              }} className="relative h-9 px-3 rounded-lg border border-slate-200 dark:border-brand-muted flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-brand-muted/50 transition-colors text-xs gap-1.5" type="button">
-              <SlidersHorizontal className="h-3.5 w-3.5" /> {[filterCategory, filterDateFrom, filterDateTo, filterMinAmount, filterMaxAmount, search].filter(Boolean).length > 0 ? 'Clear Filters' : 'Filters'}
+              }} aria-expanded={showFilters} aria-label={activeFilterCount > 0 ? `Clear ${activeFilterCount} active filter${activeFilterCount > 1 ? 's' : ''}` : 'Show filters'} className="relative h-9 px-3 rounded-lg border border-slate-200 dark:border-brand-muted flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-brand-muted/50 transition-colors text-xs gap-1.5" type="button">
+              <SlidersHorizontal className="h-3.5 w-3.5" /> {activeFilterCount > 0 ? 'Clear Filters' : 'Filters'}
               {(() => {
-                const count = [filterCategory, filterDateFrom, filterDateTo, filterMinAmount, filterMaxAmount, search].filter(Boolean).length;
-                return count > 0 ? <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">{count}</span> : null;
+                return activeFilterCount > 0 ? <span className="absolute -top-1.5 -right-1.5 h-4 w-4 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">{activeFilterCount}</span> : null;
               })()}
             </button>
-            <button onClick={() => setCreditOnly(c => !c)} className={cn("h-9 px-3 rounded-lg border flex items-center justify-center transition-colors text-xs gap-1.5", creditOnly ? "border-orange-300 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400" : "border-slate-200 dark:border-brand-muted text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-brand-muted/50")} type="button" title={transText('credit.filterTitle')}>
+            <button onClick={() => setCreditOnly(c => !c)} aria-pressed={creditOnly} className={cn("h-9 px-3 rounded-lg border flex items-center justify-center transition-colors text-xs gap-1.5", creditOnly ? "border-orange-300 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400" : "border-slate-200 dark:border-brand-muted text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-brand-muted/50")} type="button" title={transText('credit.filterTitle')}>
               <CreditCard className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Credit</span>
             </button>
             <button onClick={() => { setSortField('date'); setSortDir(d => d === 'asc' ? 'desc' : 'asc'); }} className="h-9 px-3 rounded-lg border border-slate-200 dark:border-brand-muted flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:hover:bg-brand-muted/50 transition-colors text-xs gap-1.5" type="button" title={sortDir === 'desc' ? 'Newest first' : 'Oldest first'}>
@@ -660,31 +698,31 @@ export default function TransactionPage({ type, title, description, titleKey }: 
               <X className="h-4 w-4" />
             </button>
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Category</label>
-              <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
+              <label htmlFor="mm-f-cat" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Category</label>
+              <select id="mm-f-cat" value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
                 className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm">
                 <option value="">All</option>
                 {recentCategories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">From Date</label>
-              <input type="date" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)}
+              <label htmlFor="mm-f-from" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">From Date</label>
+              <input id="mm-f-from" type="date" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)}
                 className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">To Date</label>
-              <input type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)}
+              <label htmlFor="mm-f-to" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">To Date</label>
+              <input id="mm-f-to" type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)}
                 className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Min Amount</label>
-              <input type="number" value={filterMinAmount} onChange={e => setFilterMinAmount(e.target.value)} placeholder="₹0"
+              <label htmlFor="mm-f-min" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Min Amount</label>
+              <input id="mm-f-min" type="number" value={filterMinAmount} onChange={e => setFilterMinAmount(e.target.value)} placeholder="₹0"
                 className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" />
             </div>
             <div>
-              <label className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Max Amount</label>
-              <input type="number" value={filterMaxAmount} onChange={e => setFilterMaxAmount(e.target.value)} placeholder="₹99999"
+              <label htmlFor="mm-f-max" className="text-xs font-medium text-slate-600 dark:text-slate-400 block mb-1">Max Amount</label>
+              <input id="mm-f-max" type="number" value={filterMaxAmount} onChange={e => setFilterMaxAmount(e.target.value)} placeholder="₹99999"
                 className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" />
             </div>
             <div className="col-span-full">
@@ -749,9 +787,7 @@ export default function TransactionPage({ type, title, description, titleKey }: 
           <div className="md:hidden divide-y divide-slate-100 dark:divide-brand-muted">
             {displayRows.length === 0 && (
               <div className="px-6 py-16 text-center">
-                <TrendingUp className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">No transactions yet</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Tap &ldquo;+ Add&rdquo; to record your first {type === 'income' ? 'income' : type === 'expense' ? 'expense' : 'investment'}.</p>
+                {emptyState(`Tap \u201C+ Add\u201D to record your first ${type === 'income' ? 'income' : type === 'expense' ? 'expense' : 'investment'}.`)}
               </div>
             )}
             {groups.map(([groupKey, txns]) => (
@@ -828,9 +864,7 @@ export default function TransactionPage({ type, title, description, titleKey }: 
             <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
               {displayRows.length === 0 && (
                 <tr><td colSpan={5} className="px-6 py-16 text-center">
-                  <TrendingUp className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">No transactions yet</p>
-                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">Click &ldquo;+ Add&rdquo; to record your first {type === 'income' ? 'income' : type === 'expense' ? 'expense' : 'investment'}.</p>
+                  {emptyState(`Click \u201C+ Add\u201D to record your first ${type === 'income' ? 'income' : type === 'expense' ? 'expense' : 'investment'}.`)}
                 </td></tr>
               )}
               {groups.map(([groupKey, txns]) => (
@@ -906,20 +940,26 @@ export default function TransactionPage({ type, title, description, titleKey }: 
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-add-tx-title" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full p-8 shadow-2xl my-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Add {title === 'Income' ? 'Income' : title.replace(/s$/, '')}</h2>
+            <h2 id="mm-add-tx-title" className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Add {title === 'Income' ? 'Income' : title.replace(/s$/, '')}</h2>
             <form onSubmit={handleAdd} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount (₹)</label>
-                <input required type="number" min="0" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })}
+                <label htmlFor="mm-add-amount" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount (₹)</label>
+                <input required id="mm-add-amount" inputMode="decimal" type="number" min="0" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="0" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2 relative" ref={categoryRef}>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Category</label>
+                  <label htmlFor="mm-add-category" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Category</label>
                   <input
                     required
+                    id="mm-add-category"
+                    role="combobox"
+                    aria-expanded={showCategoryDropdown}
+                    aria-controls="mm-add-category-listbox"
+                    aria-autocomplete="list"
+                    autoComplete="off"
                     value={form.category}
                     onChange={e => { setForm({ ...form, category: e.target.value }); setCategorySearch(e.target.value); setShowCategoryDropdown(true); setCatHighlightIndex(-1); }}
                     onFocus={() => setShowCategoryDropdown(true)}
@@ -934,7 +974,7 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                     placeholder="Search or type new category"
                   />
                   {showCategoryDropdown && (
-                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-[#2A2522] border border-slate-200 dark:border-brand-muted rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    <div id="mm-add-category-listbox" role="listbox" aria-label="Category suggestions" className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-[#2A2522] border border-slate-200 dark:border-brand-muted rounded-lg shadow-lg max-h-48 overflow-y-auto">
                       {filteredCategories.map((c, i) => (
                         <button
                           key={c}
@@ -960,20 +1000,20 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
-                  <input required type="date" max={todayStr()} value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
+                  <label htmlFor="mm-add-date" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
+                  <input required id="mm-add-date" type="date" max={todayStr()} value={form.date} onChange={e => setForm({ ...form, date: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Description</label>
-                <input value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
+                <label htmlFor="mm-add-desc" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Description</label>
+                <input id="mm-add-desc" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="Add a note..." />
               </div>
               {(type === 'income' || type === 'expense') && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Account</label>
-                  <select value={form.account} onChange={e => setForm({ ...form, account: e.target.value as 'cash' | 'bank' | 'upi' | 'credit' })}
+                  <label htmlFor="mm-add-account" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Account</label>
+                  <select id="mm-add-account" value={form.account} onChange={e => setForm({ ...form, account: e.target.value as 'cash' | 'bank' | 'upi' | 'credit' })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                     <option value="cash">Cash</option>
                     <option value="bank">Bank</option>
@@ -991,8 +1031,8 @@ export default function TransactionPage({ type, title, description, titleKey }: 
               {type === 'investment' && (
                 <>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Source of Funds</label>
-                  <select value={form.investSource} onChange={e => setForm({ ...form, investSource: e.target.value })}
+                  <label htmlFor="mm-source-of-funds" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Source of Funds</label>
+                  <select id="mm-source-of-funds" value={form.investSource} onChange={e => setForm({ ...form, investSource: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                     <option value="bank">Bank</option>
                     <option value="adjustment">Adjustment</option>
@@ -1011,19 +1051,19 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                     {form.category === 'Mutual Funds' && (
                       <>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Fund Name</label>
-                        <input value={investMeta.fundName} onChange={e => setInvestMeta({ ...investMeta, fundName: e.target.value })}
+                        <label htmlFor="mm-fund-name" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Fund Name</label>
+                        <input id="mm-fund-name" value={investMeta.fundName} onChange={e => setInvestMeta({ ...investMeta, fundName: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. HDFC Mid-Cap Opportunities Fund" />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">NAV (₹)</label>
-                          <input type="number" step="0.001" min="0" value={investMeta.nav} onChange={e => setInvestMeta({ ...investMeta, nav: e.target.value })}
+                          <label htmlFor="mm-nav" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">NAV (₹)</label>
+                          <input id="mm-nav" type="number" step="0.001" min="0" value={investMeta.nav} onChange={e => setInvestMeta({ ...investMeta, nav: e.target.value })}
                             className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="0.00" />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Units</label>
-                          <input type="number" step="0.001" min="0" value={investMeta.units} onChange={e => setInvestMeta({ ...investMeta, units: e.target.value })}
+                          <label htmlFor="mm-units" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Units</label>
+                          <input id="mm-units" type="number" step="0.001" min="0" value={investMeta.units} onChange={e => setInvestMeta({ ...investMeta, units: e.target.value })}
                             className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="Auto" />
                         </div>
                       </div>
@@ -1046,8 +1086,8 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                     {(form.category === 'FD' || form.category === 'Fixed Deposit') && (
                       <>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Type of FD</label>
-                        <select value={investMeta.fdType} onChange={e => setInvestMeta({ ...investMeta, fdType: e.target.value })}
+                        <label htmlFor="mm-type-of-fd" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Type of FD</label>
+                        <select id="mm-type-of-fd" value={investMeta.fdType} onChange={e => setInvestMeta({ ...investMeta, fdType: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                           <option value="cumulative">Cumulative</option>
                           <option value="quarterly">Quarterly Payout</option>
@@ -1058,31 +1098,31 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                         </select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Institution / Bank</label>
-                        <input value={investMeta.institution} onChange={e => setInvestMeta({ ...investMeta, institution: e.target.value })}
+                        <label htmlFor="mm-institution-bank" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Institution / Bank</label>
+                        <input id="mm-institution-bank" value={investMeta.institution} onChange={e => setInvestMeta({ ...investMeta, institution: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. SBI, HDFC Bank" />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Interest Rate (%)</label>
-                          <input type="number" step="0.1" min="0" value={investMeta.interestRate} onChange={e => setInvestMeta({ ...investMeta, interestRate: e.target.value })}
+                          <label htmlFor="mm-interest-rate" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Interest Rate (%)</label>
+                          <input id="mm-interest-rate" type="number" step="0.1" min="0" value={investMeta.interestRate} onChange={e => setInvestMeta({ ...investMeta, interestRate: e.target.value })}
                             className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. 7.5" />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Tenure (months)</label>
-                          <input type="number" min="0" value={investMeta.tenure} onChange={e => setInvestMeta({ ...investMeta, tenure: e.target.value })}
+                          <label htmlFor="mm-tenure-months" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Tenure (months)</label>
+                          <input id="mm-tenure-months" type="number" min="0" value={investMeta.tenure} onChange={e => setInvestMeta({ ...investMeta, tenure: e.target.value })}
                             className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. 12" />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">FD Number</label>
-                          <input value={investMeta.fdNumber} onChange={e => setInvestMeta({ ...investMeta, fdNumber: e.target.value })}
+                          <label htmlFor="mm-fd-number" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">FD Number</label>
+                          <input id="mm-fd-number" value={investMeta.fdNumber} onChange={e => setInvestMeta({ ...investMeta, fdNumber: e.target.value })}
                             className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="Receipt/ref number" />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Maturity Date</label>
-                          <input type="date" value={investMeta.maturityDate} onChange={e => setInvestMeta({ ...investMeta, maturityDate: e.target.value })}
+                          <label htmlFor="mm-maturity-date" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Maturity Date</label>
+                          <input id="mm-maturity-date" type="date" value={investMeta.maturityDate} onChange={e => setInvestMeta({ ...investMeta, maturityDate: e.target.value })}
                             className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                         </div>
                       </div>
@@ -1106,19 +1146,19 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                     {form.category === 'Stocks' && (
                       <>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Company / Script</label>
-                        <input value={investMeta.company} onChange={e => setInvestMeta({ ...investMeta, company: e.target.value })}
+                        <label htmlFor="mm-company-script" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Company / Script</label>
+                        <input id="mm-company-script" value={investMeta.company} onChange={e => setInvestMeta({ ...investMeta, company: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. Reliance Industries" />
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Quantity</label>
-                          <input type="number" min="0" value={investMeta.quantity} onChange={e => setInvestMeta({ ...investMeta, quantity: e.target.value })}
+                          <label htmlFor="mm-quantity" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Quantity</label>
+                          <input id="mm-quantity" type="number" min="0" value={investMeta.quantity} onChange={e => setInvestMeta({ ...investMeta, quantity: e.target.value })}
                             className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. 10" />
                         </div>
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Buy Price (₹)</label>
-                          <input type="number" step="0.01" min="0" value={investMeta.buyPrice} onChange={e => setInvestMeta({ ...investMeta, buyPrice: e.target.value })}
+                          <label htmlFor="mm-buy-price" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Buy Price (₹)</label>
+                          <input id="mm-buy-price" type="number" step="0.01" min="0" value={investMeta.buyPrice} onChange={e => setInvestMeta({ ...investMeta, buyPrice: e.target.value })}
                             className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. 2500.50" />
                         </div>
                       </div>
@@ -1159,8 +1199,8 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                 </>
               )}
               <div className="space-y-2 relative" ref={partyRef}>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Party {form.account === 'credit' ? '(Required for Credit)' : '(Optional)'}</label>
-                <input value={partyFocused && !form.party && !partySearch ? '' : (partySearch || form.party || 'None')} onChange={e => { setPartySearch(e.target.value); setShowPartyDropdown(true); setPartyHighlightIndex(-1); }}
+                <label htmlFor="mm-add-party" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Party {form.account === 'credit' ? '(Required for Credit)' : '(Optional)'}</label>
+                <input id="mm-add-party" role="combobox" aria-expanded={showPartyDropdown} aria-controls="mm-add-party-listbox" aria-autocomplete="list" autoComplete="off" value={partyFocused && !form.party && !partySearch ? '' : (partySearch || form.party || 'None')} onChange={e => { setPartySearch(e.target.value); setShowPartyDropdown(true); setPartyHighlightIndex(-1); }}
                   onFocus={() => { setPartyFocused(true); setShowPartyDropdown(true); }}
                   onBlur={() => { if (!partySearch && !form.party) setPartyFocused(false); }}
                   onKeyDown={e => {
@@ -1173,7 +1213,7 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                   placeholder="Search or type party name"
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                 {showPartyDropdown && (
-                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-[#2A2522] border border-slate-200 dark:border-brand-muted rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  <div id="mm-add-party-listbox" className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-[#2A2522] border border-slate-200 dark:border-brand-muted rounded-lg shadow-lg max-h-48 overflow-y-auto">
                     <button type="button"
                       onClick={() => { setForm({ ...form, partnerAccountId: '', party: '' }); setPartySearch(''); setShowPartyDropdown(false); setPartyHighlightIndex(-1); }}
                       onMouseEnter={() => setPartyHighlightIndex(0)}
@@ -1200,7 +1240,7 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                 )}
               </div>
               <div className="flex items-center justify-end gap-2 pt-6">
-                <Button variant="ghost" size="sm" onClick={() => setShowAddModal(false)}>Cancel</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddModal(false)}>Cancel</Button>
                 <Button type="submit" size="sm">Save Transaction</Button>
               </div>
             </form>
@@ -1210,20 +1250,26 @@ export default function TransactionPage({ type, title, description, titleKey }: 
 
       {/* Edit Modal */}
       {editingTransaction && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-edit-tx-title" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full p-8 shadow-2xl my-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Edit {title === 'Income' ? 'Income' : title.replace(/s$/, '')}</h2>
+            <h2 id="mm-edit-tx-title" className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">Edit {title === 'Income' ? 'Income' : title.replace(/s$/, '')}</h2>
             <form onSubmit={(e) => { e.preventDefault(); handleEdit(); }} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount (₹)</label>
-                <input required type="number" min="0" step="0.01" value={editForm.amount} onChange={e => setEditForm({ ...editForm, amount: e.target.value })}
+                <label htmlFor="mm-edit-amount" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount (₹)</label>
+                <input required id="mm-edit-amount" inputMode="decimal" type="number" min="0" step="0.01" value={editForm.amount} onChange={e => setEditForm({ ...editForm, amount: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2 relative" ref={editCategoryRef}>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Category</label>
+                  <label htmlFor="mm-edit-category" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Category</label>
                   <input
                     required
+                    id="mm-edit-category"
+                    role="combobox"
+                    aria-expanded={showEditCategoryDropdown}
+                    aria-controls="mm-edit-category-listbox"
+                    aria-autocomplete="list"
+                    autoComplete="off"
                     value={editForm.category}
                     onChange={e => { setEditForm({ ...editForm, category: e.target.value }); setEditCategorySearch(e.target.value); setShowEditCategoryDropdown(true); setEditCatHighlightIndex(-1); }}
                     onFocus={() => setShowEditCategoryDropdown(true)}
@@ -1238,7 +1284,7 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                     placeholder="Search or type new"
                   />
                   {showEditCategoryDropdown && (
-                    <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-[#2A2522] border border-slate-200 dark:border-brand-muted rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    <div id="mm-edit-category-listbox" role="listbox" aria-label="Category suggestions" className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-[#2A2522] border border-slate-200 dark:border-brand-muted rounded-lg shadow-lg max-h-48 overflow-y-auto">
                       {filteredEditCategories.map((c, i) => (
                         <button
                           key={c}
@@ -1264,16 +1310,31 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                   )}
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
-                  <input required type="date" max={todayStr()} value={editForm.date} onChange={e => setEditForm({ ...editForm, date: e.target.value })}
+                  <label htmlFor="mm-edit-date" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
+                  <input required id="mm-edit-date" type="date" max={todayStr()} value={editForm.date} onChange={e => setEditForm({ ...editForm, date: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                 </div>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Description</label>
-                <input value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })}
+                <label htmlFor="mm-edit-desc" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Description</label>
+                <input id="mm-edit-desc" value={editForm.description} onChange={e => setEditForm({ ...editForm, description: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
               </div>
+              {(type === 'income' || type === 'expense') && (
+                <div className="space-y-2">
+                  <label htmlFor="mm-edit-account" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Account</label>
+                  <select id="mm-edit-account" value={editForm.account} onChange={e => setEditForm({ ...editForm, account: e.target.value as 'cash' | 'bank' | 'upi' | 'credit' })}
+                    className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
+                    <option value="cash">Cash</option>
+                    <option value="bank">Bank</option>
+                    <option value="upi">UPI</option>
+                    <option value="credit">{type === 'expense' ? 'Credit (buy on credit)' : 'Credit (sale on credit)'}</option>
+                  </select>
+                  {editForm.account === 'credit' && (
+                    <p className="text-xs text-orange-600 dark:text-orange-400">Settling this credit is tracked separately — pick a Party below.</p>
+                  )}
+                </div>
+              )}
               {(editForm.category === 'Mutual Funds' || editForm.category === 'FD' || editForm.category === 'Fixed Deposit' || editForm.category === 'Stocks') && type === 'investment' && (
               <div className="space-y-4 p-4 bg-slate-50 dark:bg-brand-muted/20 rounded-xl border border-slate-200 dark:border-brand-muted">
                 <button type="button" onClick={() => setShowEditInvestDetails(!showEditInvestDetails)}
@@ -1286,19 +1347,19 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                   {editForm.category === 'Mutual Funds' && (
                     <>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Fund Name</label>
-                      <input value={editInvestMeta.fundName} onChange={e => setEditInvestMeta({ ...editInvestMeta, fundName: e.target.value })}
+                      <label htmlFor="mm-fund-name-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Fund Name</label>
+                      <input id="mm-fund-name-2" value={editInvestMeta.fundName} onChange={e => setEditInvestMeta({ ...editInvestMeta, fundName: e.target.value })}
                         className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. HDFC Mid-Cap Opportunities Fund" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">NAV (₹)</label>
-                        <input type="number" step="0.001" min="0" value={editInvestMeta.nav} onChange={e => setEditInvestMeta({ ...editInvestMeta, nav: e.target.value })}
+                        <label htmlFor="mm-nav-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">NAV (₹)</label>
+                        <input id="mm-nav-2" type="number" step="0.001" min="0" value={editInvestMeta.nav} onChange={e => setEditInvestMeta({ ...editInvestMeta, nav: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="0.00" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Units</label>
-                        <input type="number" step="0.001" min="0" value={editInvestMeta.units} onChange={e => setEditInvestMeta({ ...editInvestMeta, units: e.target.value })}
+                        <label htmlFor="mm-units-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Units</label>
+                        <input id="mm-units-2" type="number" step="0.001" min="0" value={editInvestMeta.units} onChange={e => setEditInvestMeta({ ...editInvestMeta, units: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="Auto" />
                       </div>
                     </div>
@@ -1321,8 +1382,8 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                   {(editForm.category === 'FD' || editForm.category === 'Fixed Deposit') && (
                     <>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Type of FD</label>
-                      <select value={editInvestMeta.fdType} onChange={e => setEditInvestMeta({ ...editInvestMeta, fdType: e.target.value })}
+                      <label htmlFor="mm-type-of-fd-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Type of FD</label>
+                      <select id="mm-type-of-fd-2" value={editInvestMeta.fdType} onChange={e => setEditInvestMeta({ ...editInvestMeta, fdType: e.target.value })}
                         className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                         <option value="cumulative">Cumulative</option>
                         <option value="quarterly">Quarterly Payout</option>
@@ -1333,31 +1394,31 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Institution / Bank</label>
-                      <input value={editInvestMeta.institution} onChange={e => setEditInvestMeta({ ...editInvestMeta, institution: e.target.value })}
+                      <label htmlFor="mm-institution-bank-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Institution / Bank</label>
+                      <input id="mm-institution-bank-2" value={editInvestMeta.institution} onChange={e => setEditInvestMeta({ ...editInvestMeta, institution: e.target.value })}
                         className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. SBI, HDFC Bank" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Interest Rate (%)</label>
-                        <input type="number" step="0.1" min="0" value={editInvestMeta.interestRate} onChange={e => setEditInvestMeta({ ...editInvestMeta, interestRate: e.target.value })}
+                        <label htmlFor="mm-interest-rate-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Interest Rate (%)</label>
+                        <input id="mm-interest-rate-2" type="number" step="0.1" min="0" value={editInvestMeta.interestRate} onChange={e => setEditInvestMeta({ ...editInvestMeta, interestRate: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. 7.5" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Tenure (months)</label>
-                        <input type="number" min="0" value={editInvestMeta.tenure} onChange={e => setEditInvestMeta({ ...editInvestMeta, tenure: e.target.value })}
+                        <label htmlFor="mm-tenure-months-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Tenure (months)</label>
+                        <input id="mm-tenure-months-2" type="number" min="0" value={editInvestMeta.tenure} onChange={e => setEditInvestMeta({ ...editInvestMeta, tenure: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. 12" />
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">FD Number</label>
-                        <input value={editInvestMeta.fdNumber} onChange={e => setEditInvestMeta({ ...editInvestMeta, fdNumber: e.target.value })}
+                        <label htmlFor="mm-fd-number-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">FD Number</label>
+                        <input id="mm-fd-number-2" value={editInvestMeta.fdNumber} onChange={e => setEditInvestMeta({ ...editInvestMeta, fdNumber: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="Receipt/ref number" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Maturity Date</label>
-                        <input type="date" value={editInvestMeta.maturityDate} onChange={e => setEditInvestMeta({ ...editInvestMeta, maturityDate: e.target.value })}
+                        <label htmlFor="mm-maturity-date-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Maturity Date</label>
+                        <input id="mm-maturity-date-2" type="date" value={editInvestMeta.maturityDate} onChange={e => setEditInvestMeta({ ...editInvestMeta, maturityDate: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                       </div>
                     </div>
@@ -1381,19 +1442,19 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                   {editForm.category === 'Stocks' && (
                     <>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Company / Script</label>
-                      <input value={editInvestMeta.company} onChange={e => setEditInvestMeta({ ...editInvestMeta, company: e.target.value })}
+                      <label htmlFor="mm-company-script-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Company / Script</label>
+                      <input id="mm-company-script-2" value={editInvestMeta.company} onChange={e => setEditInvestMeta({ ...editInvestMeta, company: e.target.value })}
                         className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. Reliance Industries" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Quantity</label>
-                        <input type="number" min="0" value={editInvestMeta.quantity} onChange={e => setEditInvestMeta({ ...editInvestMeta, quantity: e.target.value })}
+                        <label htmlFor="mm-quantity-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Quantity</label>
+                        <input id="mm-quantity-2" type="number" min="0" value={editInvestMeta.quantity} onChange={e => setEditInvestMeta({ ...editInvestMeta, quantity: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. 10" />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Buy Price (₹)</label>
-                        <input type="number" step="0.01" min="0" value={editInvestMeta.buyPrice} onChange={e => setEditInvestMeta({ ...editInvestMeta, buyPrice: e.target.value })}
+                        <label htmlFor="mm-buy-price-2" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Buy Price (₹)</label>
+                        <input id="mm-buy-price-2" type="number" step="0.01" min="0" value={editInvestMeta.buyPrice} onChange={e => setEditInvestMeta({ ...editInvestMeta, buyPrice: e.target.value })}
                           className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. 2500.50" />
                       </div>
                     </div>
@@ -1432,8 +1493,8 @@ export default function TransactionPage({ type, title, description, titleKey }: 
               </div>
               )}
               <div className="space-y-2 relative">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Party (Optional)</label>
-                <input value={partyFocused && !editForm.party && !partySearch ? '' : (partySearch || editForm.party || 'None')} onChange={e => { setEditForm({ ...editForm, party: e.target.value, partnerAccountId: '' }); setPartySearch(e.target.value); setShowPartyDropdown(true); setPartyHighlightIndex(-1); }}
+                <label htmlFor="mm-edit-party" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Party (Optional)</label>
+                <input id="mm-edit-party" role="combobox" aria-expanded={showPartyDropdown} aria-controls="mm-edit-party-listbox" aria-autocomplete="list" autoComplete="off" value={partyFocused && !editForm.party && !partySearch ? '' : (partySearch || editForm.party || 'None')} onChange={e => { setEditForm({ ...editForm, party: e.target.value, partnerAccountId: '' }); setPartySearch(e.target.value); setShowPartyDropdown(true); setPartyHighlightIndex(-1); }}
                   onFocus={() => { setPartyFocused(true); setShowPartyDropdown(true); }}
                   onBlur={() => { if (!partySearch && !editForm.party) setPartyFocused(false); }}
                   onKeyDown={e => {
@@ -1446,7 +1507,7 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                   placeholder="Search or type party name"
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                 {showPartyDropdown && (
-                  <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-[#2A2522] border border-slate-200 dark:border-brand-muted rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  <div id="mm-edit-party-listbox" className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-[#2A2522] border border-slate-200 dark:border-brand-muted rounded-lg shadow-lg max-h-48 overflow-y-auto">
                     <button type="button"
                       onClick={() => { setEditForm({ ...editForm, partnerAccountId: '', party: '' }); setShowPartyDropdown(false); setPartyHighlightIndex(-1); }}
                       onMouseEnter={() => setPartyHighlightIndex(0)}
@@ -1483,15 +1544,15 @@ export default function TransactionPage({ type, title, description, titleKey }: 
 
       {/* Create Party Modal */}
       {showCreateParty && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-[60] p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-new-party-title" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-[60] p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full p-6 shadow-2xl my-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">New Party</h2>
+            <h2 id="mm-new-party-title" className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">New Party</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Creating "<span className="font-medium text-slate-700 dark:text-slate-300">{showCreateParty}</span>"</p>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Group</label>
-                  <select value={createPartyForm.group} onChange={e => { const g = e.target.value as PartyGroup; setCreatePartyForm({ ...createPartyForm, group: g, type: PARTY_TYPES_BY_GROUP[g]?.[0]?.value || 'other' }); }}
+                  <label htmlFor="mm-cp-group" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Group</label>
+                  <select id="mm-cp-group" value={createPartyForm.group} onChange={e => { const g = e.target.value as PartyGroup; setCreatePartyForm({ ...createPartyForm, group: g, type: PARTY_TYPES_BY_GROUP[g]?.[0]?.value || 'other' }); }}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted text-sm outline-none focus:ring-2 focus:ring-brand">
                     {PARTY_GROUPS.map(g => (
                       <option key={g.value} value={g.value}>{g.label}</option>
@@ -1499,8 +1560,8 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Type</label>
-                  <select value={createPartyForm.type} onChange={e => setCreatePartyForm({ ...createPartyForm, type: e.target.value })}
+                  <label htmlFor="mm-cp-type" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Type</label>
+                  <select id="mm-cp-type" value={createPartyForm.type} onChange={e => setCreatePartyForm({ ...createPartyForm, type: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted text-sm outline-none focus:ring-2 focus:ring-brand">
                     {(PARTY_TYPES_BY_GROUP[createPartyForm.group] || PARTY_TYPES_BY_GROUP.personal).map(t => (
                       <option key={t.value} value={t.value}>{t.label}</option>
@@ -1509,8 +1570,8 @@ export default function TransactionPage({ type, title, description, titleKey }: 
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Description (optional)</label>
-                <input value={createPartyForm.description} onChange={e => setCreatePartyForm({ ...createPartyForm, description: e.target.value })}
+                <label htmlFor="mm-cp-desc" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Description (optional)</label>
+                <input id="mm-cp-desc" value={createPartyForm.description} onChange={e => setCreatePartyForm({ ...createPartyForm, description: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted text-sm outline-none focus:ring-2 focus:ring-brand" placeholder="Optional notes..." />
               </div>
               <div className="flex justify-end gap-2 pt-2">
@@ -1524,11 +1585,11 @@ export default function TransactionPage({ type, title, description, titleKey }: 
 
       {/* Duplicate Warning */}
       {dupWarning && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dup-title" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl border-l-4 border-amber-500" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="h-6 w-6 text-amber-500" />
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">Possible Duplicate</h3>
+              <h3 id="mm-dup-title" className="text-lg font-bold text-slate-900 dark:text-slate-100">Possible Duplicate</h3>
             </div>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
               A similar entry already exists on this date:
@@ -1548,11 +1609,11 @@ export default function TransactionPage({ type, title, description, titleKey }: 
 
       {/* Detail Modal */}
       {showDetail && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-tx-detail-title" className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowDetail(null)}>
           <div className="bg-white dark:bg-[#2A2522] w-full max-w-sm rounded-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-brand-muted">
-              <h2 className="font-semibold text-slate-900 dark:text-slate-100">Transaction Details</h2>
-              <button onClick={() => setShowDetail(null)} className="p-1 text-slate-400"><X className="h-5 w-5" /></button>
+              <h2 id="mm-tx-detail-title" className="font-semibold text-slate-900 dark:text-slate-100">Transaction Details</h2>
+              <button onClick={() => setShowDetail(null)} aria-label="Close transaction details" className="p-1 text-slate-400"><X className="h-5 w-5" /></button>
             </div>
             <div className="p-4 space-y-3 text-sm">
               <div className={cn("p-3 rounded-xl text-center", type === 'income' ? "bg-green-50 dark:bg-green-900/20" : "bg-red-50 dark:bg-red-900/20")}>

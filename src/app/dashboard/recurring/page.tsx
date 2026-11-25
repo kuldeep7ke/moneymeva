@@ -108,7 +108,7 @@ export default function RecurringPage() {
             <p className="text-slate-500 dark:text-slate-400 text-base font-semibold md:font-normal md:text-sm block md:hidden">{"Automate your bills, premiums, and subscriptions".split(' ').slice(0, 5).join(' ')}{"Automate your bills, premiums, and subscriptions".split(' ').length > 5 ? '...' : ''}</p>
             <p className="text-slate-500 dark:text-slate-400 hidden md:block">Automate your bills, premiums, and subscriptions</p>
           </div>
-          <button onClick={() => setShowAddModal(true)} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-orange-600 transition-colors active:scale-95 shrink-0" type="button" title="New Automation"><Plus className="h-5 w-5" /></button>
+          <button onClick={() => setShowAddModal(true)} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-brand-hover transition-colors active:scale-95 shrink-0" type="button" title="New Automation"><Plus className="h-5 w-5" /></button>
         </div></Reveal>
 
         <Reveal delay={100}>{items.length === 0 ? (
@@ -152,12 +152,12 @@ export default function RecurringPage() {
                     </div>
                     <div className="flex items-center gap-3 mt-2.5 text-xs text-slate-500 dark:text-slate-400">
                       <span className="flex items-center gap-1"><Repeat className="h-3 w-3" />{item.frequency}</span>
-                      <span className="text-slate-300 dark:text-slate-600">·</span>
+                      <span className="text-slate-300 dark:text-slate-500">·</span>
                       <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{item.nextDate}</span>
-                      <span className="text-slate-300 dark:text-slate-600">·</span>
+                      <span className="text-slate-300 dark:text-slate-500">·</span>
                       <span className={cn("px-1.5 py-0.5 rounded-full text-[10px] font-medium", item.status === 'active' ? "bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400" : "bg-slate-100 dark:bg-brand-muted text-slate-600 dark:text-slate-400")}>{item.status}</span>
                     </div>
-                    <p className="text-[10px] text-slate-300 dark:text-slate-600 mt-2 italic">swipe left for actions</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 italic">swipe left for actions</p>
                   </div>
                 </SwipeCard>
               ))}
@@ -221,33 +221,33 @@ export default function RecurringPage() {
       </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm overflow-y-auto flex items-start sm:items-center justify-center z-50 p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-19" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm overflow-y-auto flex items-start sm:items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full p-8 shadow-2xl my-4">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">New Recurring Transaction</h2>
+            <h2 id="mm-dialog-19" className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">New Recurring Transaction</h2>
             <form onSubmit={handleAdd} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Title</label>
-                <input required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
+                <label htmlFor="mm-title" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Title</label>
+                <input id="mm-title" required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="e.g. Broadband Bill" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Type</label>
-                  <select value={form.txType} onChange={e => { setForm({ ...form, txType: e.target.value as any, category: '' }); setCatSearch(''); setShowCategoryDropdown(true); setCatHighlightIdx(-1); }}
+                  <label htmlFor="mm-type" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Type</label>
+                  <select id="mm-type" value={form.txType} onChange={e => { setForm({ ...form, txType: e.target.value as any, category: '' }); setCatSearch(''); setShowCategoryDropdown(true); setCatHighlightIdx(-1); }}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                     <option value="expense">Expense</option>
                     <option value="income">Income</option>
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount</label>
-                  <input required type="number" min="0" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })}
+                  <label htmlFor="mm-amount" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount</label>
+                  <input id="mm-amount" required type="number" min="0" step="0.01" value={form.amount} onChange={e => setForm({ ...form, amount: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="₹ 0" />
                 </div>
               </div>
               <div className="space-y-2 relative" ref={categoryRef}>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Category</label>
-                <input required value={form.category} onChange={e => { setForm({ ...form, category: e.target.value }); setCatSearch(e.target.value); setShowCategoryDropdown(true); setCatHighlightIdx(-1); }}
+                <label htmlFor="mm-category" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Category</label>
+                <input id="mm-category" required value={form.category} onChange={e => { setForm({ ...form, category: e.target.value }); setCatSearch(e.target.value); setShowCategoryDropdown(true); setCatHighlightIdx(-1); }}
                   onFocus={() => setShowCategoryDropdown(true)}
                   onKeyDown={e => {
                     if (e.key === 'ArrowDown') { e.preventDefault(); setShowCategoryDropdown(true); setCatHighlightIdx(i => Math.min(i + 1, filteredCategories.length - 1)); }
@@ -277,8 +277,8 @@ export default function RecurringPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Frequency</label>
-                  <select value={form.frequency} onChange={e => setForm({ ...form, frequency: e.target.value as any })}
+                  <label htmlFor="mm-frequency" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Frequency</label>
+                  <select id="mm-frequency" value={form.frequency} onChange={e => setForm({ ...form, frequency: e.target.value as any })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
@@ -288,8 +288,8 @@ export default function RecurringPage() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Start Date</label>
-                  <input required type="date" value={form.startDate} onChange={e => {
+                  <label htmlFor="mm-start-date" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Start Date</label>
+                  <input id="mm-start-date" required type="date" value={form.startDate} onChange={e => {
                       const d = new Date(e.target.value);
                       d.setMonth(d.getMonth() + 1);
                       const endDate = d.toISOString().split('T')[0];
@@ -300,13 +300,13 @@ export default function RecurringPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">End Date (optional)</label>
-                  <input type="date" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })}
+                  <label htmlFor="mm-end-date-optional" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">End Date (optional)</label>
+                  <input id="mm-end-date-optional" type="date" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Reminder</label>
-                  <select value={form.reminderDays} onChange={e => setForm({ ...form, reminderDays: e.target.value })}
+                  <label htmlFor="mm-reminder" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Reminder</label>
+                  <select id="mm-reminder" value={form.reminderDays} onChange={e => setForm({ ...form, reminderDays: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                     <option value="1 day">1 day</option>
                     <option value="2 days">2 days</option>
@@ -319,7 +319,7 @@ export default function RecurringPage() {
                 </div>
               </div>
               <div className="flex items-center justify-end gap-2 pt-6">
-                <Button variant="ghost" size="sm" onClick={() => setShowAddModal(false)}>Cancel</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setShowAddModal(false)}>Cancel</Button>
                 <Button type="submit" size="sm">Create Automation</Button>
               </div>
             </form>

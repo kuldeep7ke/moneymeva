@@ -112,7 +112,7 @@ export default function HomePage() {
   const { ref: featureRef, inView: featureInView } = useInView();
   const { ref: chartRef, inView: chartInView } = useInView();
   return (
-    <div className="min-h-screen bg-[#F8F6F3]">
+    <div className="min-h-screen bg-[#F8F6F3] mm-surface-light">
       {/* Top Bar */}
       <header className="max-w-7xl mx-auto px-6 sm:px-10 h-[72px] flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -121,11 +121,11 @@ export default function HomePage() {
           </div>
         <div className="flex items-center gap-3">
           {sessionUser ? (
-            <Link href="/dashboard" className="flex items-center gap-1 px-5 py-2.5 rounded-full bg-brand text-white text-sm font-semibold hover:bg-orange-600 transition-all shadow-sm">
+            <Link href="/dashboard" className="flex items-center gap-1 px-5 py-2.5 rounded-full bg-brand text-white text-sm font-semibold hover:bg-brand-hover transition-all shadow-sm">
               {t('landing.cta.dashboard')} <ArrowRight className="h-4 w-4" />
             </Link>
           ) : (
-            <Link href="/login?mode=register" className="flex items-center gap-1 px-5 py-2.5 rounded-full bg-brand text-white text-sm font-semibold hover:bg-orange-600 transition-all shadow-sm">
+            <Link href="/login?mode=register" className="flex items-center gap-1 px-5 py-2.5 rounded-full bg-brand text-white text-sm font-semibold hover:bg-brand-hover transition-all shadow-sm">
               {t('landing.cta.getStarted')} <ArrowRight className="h-4 w-4" />
             </Link>
           )}
@@ -138,7 +138,7 @@ export default function HomePage() {
           {/* Left */}
           <div className="order-1 text-center lg:text-left pt-4 lg:pt-8">
             <Reveal>
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 text-orange-600/70 border border-orange-200 text-[13px] font-bold mb-6">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-50 text-orange-700 border border-orange-200 text-[13px] font-bold mb-6">
                 <img src={`${BASE_PATH}/logo.png`} alt="" className="h-4 w-auto" /> <span className="text-slate-300">|</span> {t('landing.badge')}
               </div>
             </Reveal>
@@ -157,7 +157,7 @@ export default function HomePage() {
               <div className="mt-8 flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3">
                 {sessionUser ? (
                   <>
-                    <button onClick={handleEditProfile} className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-brand text-white font-semibold hover:bg-orange-600 transition-all shadow-sm text-[15px] cursor-pointer">
+                    <button onClick={handleEditProfile} className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-brand text-white font-semibold hover:bg-brand-hover transition-all shadow-sm text-[15px] cursor-pointer">
                       <Pencil className="inline h-4 w-4 mr-1.5" />{t('landing.cta.editProfile')}
                     </button>
                     <Link href="/dashboard" className="w-full sm:w-auto px-7 py-3.5 rounded-full border border-brand/30 text-brand font-semibold hover:bg-brand/5 transition-all text-[15px]">
@@ -166,7 +166,7 @@ export default function HomePage() {
                   </>
                 ) : (
                   <>
-                    <Link href="/login?mode=register" className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-brand text-white font-semibold hover:bg-orange-600 transition-all shadow-sm text-[15px]">
+                    <Link href="/login?mode=register" className="w-full sm:w-auto px-7 py-3.5 rounded-full bg-brand text-white font-semibold hover:bg-brand-hover transition-all shadow-sm text-[15px]">
                       {t('landing.cta.startFree')} <ArrowRight className="inline h-4 w-4 ml-1" />
                     </Link>
                     <Link href="/login" className="w-full sm:w-auto px-7 py-3.5 rounded-full border border-brand/30 text-brand font-semibold hover:bg-brand/5 transition-all text-[15px]">
@@ -300,13 +300,13 @@ export default function HomePage() {
 
       {/* Edit Profile PIN Prompt */}
       {showPinPrompt && (
-        <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => { setShowPinPrompt(false); setPinInput(''); setPinError(false); }}>
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-29" className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => { setShowPinPrompt(false); setPinInput(''); setPinError(false); }}>
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center space-y-4" onClick={e => e.stopPropagation()}>
             <div className="mx-auto w-12 h-12 rounded-full bg-brand-secondary dark:bg-brand-muted/30 flex items-center justify-center">
               <Lock className="h-6 w-6 text-brand dark:text-brand-secondary" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{t('landing.pin.title')}</h3>
+              <h3 id="mm-dialog-29" className="text-lg font-bold text-slate-900 dark:text-slate-100">{t('landing.pin.title')}</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('landing.pin.message')}</p>
             </div>
             <form onSubmit={handlePinSubmit} className="space-y-4">

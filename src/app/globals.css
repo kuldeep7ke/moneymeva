@@ -3,6 +3,9 @@
 
 @theme inline {
   --color-brand: var(--brand);
+  --color-brand-on: var(--brand-on);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-hover: var(--brand-hover);
   --color-brand-secondary: var(--brand-secondary);
   --color-brand-light: var(--brand-light);
   --color-brand-dark: var(--brand-dark);
@@ -11,36 +14,232 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/*
+  Two readable foregrounds per brand preset, because #FF8A3D is a mid-luminance
+  colour: it clears 4.5:1 against neither white text (2.35:1) nor the white
+  surfaces it is used on (2.35:1).
+
+    --brand-on   text sitting ON a brand fill   (buttons, badges, FABs)
+    --brand-ink  brand colour used AS text      (links, headings, amounts)
+
+  The blue/green presets are dark enough that white text and brand-as-text both
+  already pass, so they keep #FFFFFF / their own colour.
+*/
 :root {
   --brand: #FF8A3D;
+  --brand-on: #1B1B1D;      /* 7.33:1 on the orange fill */
+  --brand-ink: #C2410C;     /* 5.18:1 on white, 4.80:1 on the app background */
+  --brand-ink-light: #C2410C;   /* the same value, kept for light-only islands */
   --brand-secondary: #FFCF9A;
   --brand-light: #FFF6EC;
   --brand-dark: #1B1B1D;
   --brand-muted: #3D332F;
   --card-bg: #FFFFFF;
   --card-bg-dark: #2A2522;
+
+  --brand-hover: #E8590C;
+}
+
+html.dark {
+  --brand-ink: #FFA65C;     /* 8.89:1 on the dark surface */
 }
 
 html.brand-blue {
   --brand: #1E40AF;
+  --brand-on: #FFFFFF;      /* 8.72:1 */
+  --brand-ink: #1E40AF;     /* 8.72:1 on light surfaces */
+  --brand-ink-light: #1E40AF;
   --brand-secondary: #FCD34D;
   --brand-light: #FFF7ED;
   --brand-dark: #0F172A;
   --brand-muted: #1E3A5F;
+
+  --brand-hover: #1E3A8A;
+}
+
+html.brand-blue.dark {
+  --brand-ink: #93C5FD;     /* 9.90:1 on #0F172A */
 }
 
 html.brand-green {
   --brand: #047857;
+  --brand-on: #FFFFFF;      /* 5.48:1 */
+  --brand-ink: #047857;     /* 5.48:1 on light surfaces */
+  --brand-ink-light: #047857;
   --brand-secondary: #FCD34D;
   --brand-light: #FFF7ED;
   --brand-dark: #0F2918;
   --brand-muted: #064E3B;
+
+  --brand-hover: #065F46;
 }
+
+html.brand-green.dark {
+  --brand-ink: #6EE7B7;     /* 10.20:1 on #0F2918 */
+}
+
+/*
+  Legibility floors. These utilities measured 1.4-4.5:1 in practice, so muted
+  copy and accent text were effectively decorative rather than readable. The
+  light rules are keyed to the app's real surfaces, not to white: the muted ink
+  has to clear 4.5:1 on brand-light (#FFF6EC) and on slate-50 chips as well.
+
+  Dark mode needs its own set because call sites pair `text-X dark:text-Y`, and
+  several pairings land short on the #2A2522 card (slate-500 3.18:1) or on the
+  opaque brand-muted total row (red-400 4.43:1). The :not([class*=]) guards
+  leave call sites that already chose a dark: value alone.
+
+  Scoped to :where(html…) so each rule keeps Tailwind's single-class
+  specificity and only needs source order to win.
+*/
+@layer utilities {
+  :where(html:not(.dark)) .text-slate-300,
+  :where(html:not(.dark)) .text-slate-400,
+  :where(html:not(.dark)) .text-slate-500 { color: #56637B; }  /* 5.67:1 on brand-light, 5.53:1 on slate-50 */
+  :where(html:not(.dark)) .text-red-500 { color: #DC2626; }    /* 4.83:1 */
+  :where(html:not(.dark)) .text-amber-500 { color: #B45309; }  /* 5.02:1 */
+  :where(html:not(.dark)) .text-green-500 { color: #15803D; }  /* 5.02:1 */
+  :where(html:not(.dark)) .text-emerald-500 { color: #047857; } /* 5.48:1 */
+  :where(html:not(.dark)) .text-sky-500 { color: #0369A1; }    /* 5.93:1 */
+  :where(html:not(.dark)) .text-orange-500 { color: #C2410C; } /* 5.18:1 */
+  :where(html:not(.dark)) .text-violet-500 { color: #6D28D9; } /* 7.10:1 */
+  :where(html:not(.dark)) .text-blue-500 { color: #1D4ED8; }   /* 6.70:1 */
+  /* the -600 shades are used as body-text colours too (amounts, labels), and
+     four of them still sit under 4.5:1 on a white card */
+  :where(html:not(.dark)) .text-green-600  { color: #15803D; }  /* 5.02:1 */
+  :where(html:not(.dark)) .text-emerald-600 { color: #047857; } /* 5.48:1 */
+  :where(html:not(.dark)) .text-amber-600  { color: #B45309; }  /* 5.02:1 */
+  :where(html:not(.dark)) .text-orange-600 { color: #C2410C; }  /* 5.18:1 */
+  :where(html:not(.dark)) .text-sky-600    { color: #0369A1; }  /* 5.93:1 */
+
+  /* the public pages (/privacy, /terms, /login, /onboarding) wash the whole
+     viewport with from-brand-light → to-brand-secondary, and #FFCF9A is far
+     enough from white that the muted floor above only reaches 4.22:1 there.
+     Inside that wash the muted ink steps to slate-600 (5.28:1 on the pastel,
+     7.09:1 on brand-light). */
+  :where(html:not(.dark)) .from-brand-light:is(.text-slate-300, .text-slate-400, .text-slate-500),
+  :where(html:not(.dark)) .to-brand-secondary :is(.text-slate-300, .text-slate-400, .text-slate-500) {
+    color: var(--color-slate-600);
+  }
+
+  /* the same wash in dark mode runs out onto brand-muted, which the blue and
+     green presets tint (#1E3A5F / #064E3B). slate-400 there measures 4.33:1 and
+     3.66:1, so metadata over the wash gets the strip ink that clears all three
+     presets (5.70 / 4.82 / 6.08). */
+  :where(html.dark) .dark\:to-brand-muted:is(.text-slate-300, .text-slate-400, .dark\:text-slate-400,
+      .text-slate-500, .dark\:text-slate-500),
+  :where(html.dark) .dark\:to-brand-muted :is(.text-slate-300, .text-slate-400, .dark\:text-slate-400,
+      .text-slate-500, .dark\:text-slate-500) { color: #A9B8CC; }
+
+  /* dark mode needed its own floor after all: timestamps, day headings and
+     other metadata are written as `text-slate-400 dark:text-slate-500`, and
+     #64748B only reaches 3.18:1 on the #2A2522 card. Bumping it to slate-400
+     gives 5.91:1 on the card and 5.29:1 on the muted/20 panels. */
+  :where(html.dark) .dark\:text-slate-500 { color: #94A3B8; }   /* 5.91:1 */
+
+  /* toolbar labels and hints written as a plain `text-slate-500` keep the light
+     value in dark mode (3.18–3.61:1). Only sites with no dark: pairing at all. */
+  :where(html.dark) .text-slate-500:not([class*="dark:text-"]) { color: #94A3B8; }
+
+  /* the table total row is an opaque brand-muted strip, and red-400 on it only
+     reaches 4.43:1 — step to red-300 there (6.46:1) without touching the
+     amounts that sit on the plain card, where red-400 already passes. */
+  :where(html.dark) .dark\:bg-brand-muted :is(.dark\:text-red-400, .dark\:text-red-300) { color: #FCA5A5; }
+
+  /* the same strips are tinted with the preset colour, so the muted ink loses
+     contrast on two of the three presets: #94A3B8 measures 4.49:1 on
+     brand-blue's #1E3A5F and 3.79:1 on brand-green's #064E3B, while it passes on
+     the orange #3D332F. One lighter ink clears 4.5:1 everywhere (5.70 / 4.82 /
+     6.08), so it is scoped to the strip instead of raising the global floor.
+     Three shapes occur: the strip carries the ink class itself, the ink sits on
+     a child, or a chip has no colour class at all and inherits — the strip
+     element therefore also gets the colour so inheritance lands on it. */
+  :where(html.dark) .dark\:bg-brand-muted,
+  :where(html.dark) .dark\:bg-brand-muted:is(.text-slate-300, .text-slate-400, .dark\:text-slate-400,
+      .text-slate-500, .dark\:text-slate-500),
+  :where(html.dark) .dark\:bg-brand-muted :is(.text-slate-300, .text-slate-400, .dark\:text-slate-400,
+      .text-slate-500, .dark\:text-slate-500) { color: #A9B8CC; }
+
+  /* red amounts and status words are written with a plain `text-red-600`, so in
+     dark mode they keep the light-mode value: #E7000B on #2A2522 is 3.18:1.
+     The [class*=] guard leaves call sites that already pair a dark: variant. */
+  :where(html.dark) .text-red-500:not([class*="dark:text-red"]),
+  :where(html.dark) .text-red-600:not([class*="dark:text-red"]) { color: #F87171; } /* 5.48:1 */
+
+  /*
+    Light-only islands. The landing page keeps its #F8F6F3 hero and the white /
+    bg-brand-light mock app panels inside it in dark mode, so the dark floors
+    above would land that copy on a light surface (1.8–2.6:1). A subtree that
+    is intentionally light regardless of theme marks itself .mm-surface-light,
+    which pins --brand-ink (per preset, via --brand-ink-light) and the muted ink
+    back to their light values. Declared after the dark rules so equal
+    specificity resolves here; the same [class*=] guards keep paired dark:
+    choices in charge.
+  */
+  .mm-surface-light { --brand-ink: var(--brand-ink-light); }
+  :where(.mm-surface-light) .text-slate-300:not([class*="dark:text-"]),
+  :where(.mm-surface-light) .text-slate-400:not([class*="dark:text-"]),
+  :where(.mm-surface-light) .text-slate-500:not([class*="dark:text-"]) { color: #56637B; }
+
+  /* brand-coloured text and icons follow --brand-ink, not the raw fill */
+  .text-brand,
+  .hover\:text-brand:hover,
+  .group-hover\:text-brand:where(.group:hover *) { color: var(--brand-ink); }
+
+  /* ...but keep it bright when it sits on the intentionally dark panels */
+  :is(.bg-brand-dark, .bg-brand-muted) .text-brand { color: var(--brand); }
+
+  /* the pale secondary fill is only 3.6:1 under --brand-ink, so brand-coloured
+     text and icons on it fall back to the near-black surface token. Same for
+     links that end up over the public pages' pastel viewport wash. */
+  :where(html:not(.dark)) .bg-brand-secondary:is(.text-brand),
+  :where(html:not(.dark)) .bg-brand-secondary .text-brand,
+  :where(html:not(.dark)) .to-brand-secondary :is(.text-brand, .hover\:text-brand:hover,
+      .hover\:text-brand-secondary:hover) {
+    color: var(--brand-dark);
+  }
+
+  /* `hover:text-brand-secondary` paints the label with #FFCF9A, which is a
+     background colour: 1.43:1 on a white card. Light mode resolves the hover
+     through --brand-ink instead, so the link still shifts without vanishing. */
+  :where(html:not(.dark)) .hover\:text-brand-secondary:hover { color: var(--brand-ink); }
+
+  /* white text on a brand fill is unreadable in the orange preset */
+  :is(.bg-brand, .bg-brand-secondary, .bg-brand\/95, .bg-brand\/90,
+      .bg-brand\/80, .from-brand, .to-brand):is(.text-white, .text-slate-50) {
+    color: var(--brand-on);
+  }
+  :is(.bg-brand, .bg-brand-secondary, .from-brand, .to-brand)
+    :is(.text-white, .text-slate-50) {
+    color: var(--brand-on);
+  }
+
+  /* solid accent fills that carry a white label: at -500/-600 the fill is only
+     2.1–4.1:1 against white, so step it down to the first shade clearing 4.5:1.
+     Same-element (btn) and nested (pill > span) shapes both occur in the app. */
+  :where(html) .bg-blue-500:is(.text-white, .text-slate-50)     { background-color: #2563EB; }
+  :where(html) .bg-emerald-500:is(.text-white, .text-slate-50)  { background-color: #047857; }
+  :where(html) .bg-emerald-600:is(.text-white, .text-slate-50)  { background-color: #047857; }
+  :where(html) .bg-green-500:is(.text-white, .text-slate-50),
+  :where(html) .bg-green-600:is(.text-white, .text-slate-50)    { background-color: #15803D; }
+  :where(html) .bg-orange-500:is(.text-white, .text-slate-50),
+  :where(html) .bg-orange-600:is(.text-white, .text-slate-50)   { background-color: #C2410C; }
+  :where(html) .bg-red-500:is(.text-white, .text-slate-50)      { background-color: #DC2626; }
+  :where(html) .bg-sky-600:is(.text-white, .text-slate-50)      { background-color: #0369A1; }
+  :where(html) .bg-amber-500:is(.text-white, .text-slate-50),
+  :where(html) .bg-amber-600:is(.text-white, .text-slate-50)    { background-color: #B45309; }
+
+  /* legibility floor for the smallest type in the app */
+  .text-\[9px\], .text-\[10px\] { font-size: 11px; }
+}
+
 
 body {
   background: var(--brand-light);
   color: var(--brand-dark);
-  font-family: Arial, Helvetica, sans-serif;
+  /* next/font loads Geist into --font-sans; the old Arial-first stack meant that
+     font was downloaded and then never used. */
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   padding-top: env(safe-area-inset-top);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);

@@ -76,7 +76,7 @@ export default function AdjustmentsPage() {
             <p className="text-slate-500 dark:text-slate-400 text-base font-semibold md:font-normal md:text-sm block md:hidden">{"Fix balances or reallocate funds between accounts".split(' ').slice(0, 5).join(' ')}{"Fix balances or reallocate funds between accounts".split(' ').length > 5 ? '...' : ''}</p>
             <p className="text-slate-500 dark:text-slate-400 hidden md:block">Fix balances or reallocate funds between accounts</p>
           </div>
-          <button onClick={() => setShowAdjustmentModal(true)} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-orange-600 transition-colors active:scale-95 shrink-0" type="button" title="New Adjustment"><Plus className="h-5 w-5" /></button>
+          <button onClick={() => setShowAdjustmentModal(true)} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-brand-hover transition-colors active:scale-95 shrink-0" type="button" title="New Adjustment"><Plus className="h-5 w-5" /></button>
         </div>
         </Reveal>
 
@@ -149,23 +149,23 @@ export default function AdjustmentsPage() {
 
       {/* Add Modal */}
       {showAdjustmentModal && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-1" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full p-8 shadow-2xl my-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">New Adjustment</h2>
+            <h2 id="mm-dialog-1" className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-6">New Adjustment</h2>
             <form onSubmit={handleAddAdjustment} className="space-y-4">
-              <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount</label>
-                <input required type="number" step="0.01" value={adjForm.amount} onChange={e => setAdjForm({ ...adjForm, amount: e.target.value })}
+              <div className="space-y-2"><label htmlFor="mm-amount" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Amount</label>
+                <input id="mm-amount" aria-required="true" type="number" step="0.01" value={adjForm.amount} onChange={e => setAdjForm({ ...adjForm, amount: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="₹ 0" /></div>
-              <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Account Type</label>
-                <select value={adjForm.accountType} onChange={e => setAdjForm({ ...adjForm, accountType: e.target.value as any })}
+              <div className="space-y-2"><label htmlFor="mm-account-type" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Account Type</label>
+                <select id="mm-account-type" value={adjForm.accountType} onChange={e => setAdjForm({ ...adjForm, accountType: e.target.value as any })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand">
                   <option value="personal">Personal Account</option><option value="partner">Partner Account</option>
                 </select></div>
-              <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
-                <input required type="date" value={adjForm.date} onChange={e => setAdjForm({ ...adjForm, date: e.target.value })}
+              <div className="space-y-2"><label htmlFor="mm-date" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Date</label>
+                <input id="mm-date" required type="date" value={adjForm.date} onChange={e => setAdjForm({ ...adjForm, date: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" /></div>
-              <div className="space-y-2"><label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Notes</label>
-                <textarea value={adjForm.notes} onChange={e => setAdjForm({ ...adjForm, notes: e.target.value })}
+              <div className="space-y-2"><label htmlFor="mm-notes" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">Notes</label>
+                <textarea id="mm-notes" value={adjForm.notes} onChange={e => setAdjForm({ ...adjForm, notes: e.target.value })}
                   className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand resize-none h-24" placeholder="Reason for adjustment..." /></div>
               <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 cursor-pointer">
                 <input type="checkbox" checked={adjForm.reflectPersonal} onChange={e => setAdjForm({ ...adjForm, reflectPersonal: e.target.checked })}
@@ -173,7 +173,7 @@ export default function AdjustmentsPage() {
                 Also reflect in personal account
               </label>
               <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="ghost" size="sm" onClick={() => setShowAdjustmentModal(false)}>Cancel</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => setShowAdjustmentModal(false)}>Cancel</Button>
                 <Button type="submit" size="sm">Apply Adjustment</Button>
               </div>
             </form>

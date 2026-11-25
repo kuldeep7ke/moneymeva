@@ -32,19 +32,20 @@ export default function PinPrompt({ open, onClose, onSuccess, title, message }: 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
+    <div role="dialog" aria-modal="true" aria-labelledby="pin-prompt-title" className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
       <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-sm w-full p-6 shadow-2xl">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-full bg-brand-secondary dark:bg-brand-muted/30">
             <Key className="h-5 w-5 text-brand dark:text-brand-secondary" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">{title || 'PIN Required'}</h3>
+            <h3 id="pin-prompt-title" className="text-lg font-bold text-slate-900 dark:text-slate-100">{title || 'PIN Required'}</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400">{message || 'Enter a PIN to proceed'}</p>
           </div>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="text" inputMode="numeric" autoComplete="off" autoCorrect="off" spellCheck={false} autoFocus maxLength={4} value={pin}
+            aria-label="PIN"
             onChange={e => { setPin(e.target.value.replace(/\D/g, '').slice(0, 4)); setError(false); }}
             className={cn("w-full text-center text-2xl tracking-[0.5em] px-4 py-3 rounded-lg border outline-none focus:ring-2 pin-mask",
               error ? "border-red-500 focus:ring-red-500 bg-red-50" : "border-slate-200 dark:border-brand-muted dark:bg-brand-dark dark:text-slate-100 focus:ring-brand"

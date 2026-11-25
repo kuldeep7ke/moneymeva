@@ -250,7 +250,7 @@ export default function WorksPage() {
               <p className="text-slate-500 dark:text-slate-400 text-base font-semibold md:font-normal md:text-sm block md:hidden md:hidden">{t('works.subtitle')}</p>
               <p className="text-slate-500 dark:text-slate-400 hidden md:block">{t('works.subtitle')}</p>
             </div>
-            <button onClick={() => { setEditingId(null); setForm(emptyForm); setShowAddModal(true); }} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-orange-600 transition-colors active:scale-95 shrink-0" type="button" title={t('works.add')}>
+            <button onClick={() => { setEditingId(null); setForm(emptyForm); setShowAddModal(true); }} className="h-10 w-10 rounded-xl bg-brand text-white flex items-center justify-center hover:bg-brand-hover transition-colors active:scale-95 shrink-0" type="button" title={t('works.add')}>
               <Plus className="h-5 w-5" />
             </button>
           </div>
@@ -259,12 +259,12 @@ export default function WorksPage() {
         {works.length > 0 && (
           <Reveal delay={100}>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-gradient-to-br from-green-600 to-emerald-700 p-5 rounded-2xl shadow-lg text-white">
-                <p className="text-sm opacity-80 mb-1 flex items-center gap-1"><ArrowDownLeft className="h-4 w-4" /> {t('works.toReceive')}</p>
+              <div className="bg-gradient-to-br from-green-700 to-emerald-800 p-5 rounded-2xl shadow-lg text-white">
+                <p className="text-sm mb-1 flex items-center gap-1"><ArrowDownLeft className="h-4 w-4" /> {t('works.toReceive')}</p>
                 <p className="text-2xl font-bold">{formatCurrency(toReceive)}</p>
               </div>
-              <div className="bg-gradient-to-br from-red-600 to-rose-700 p-5 rounded-2xl shadow-lg text-white">
-                <p className="text-sm opacity-80 mb-1 flex items-center gap-1"><ArrowUpRight className="h-4 w-4" /> {t('works.toPay')}</p>
+              <div className="bg-gradient-to-br from-red-700 to-rose-800 p-5 rounded-2xl shadow-lg text-white">
+                <p className="text-sm mb-1 flex items-center gap-1"><ArrowUpRight className="h-4 w-4" /> {t('works.toPay')}</p>
                 <p className="text-2xl font-bold">{formatCurrency(toPay)}</p>
               </div>
               <div className="bg-white dark:bg-[#2A2522] p-5 rounded-2xl border border-slate-200 dark:border-brand-muted shadow-sm">
@@ -398,9 +398,9 @@ export default function WorksPage() {
 
       {/* Add / Edit Work Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-25" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full p-6 shadow-2xl my-4">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">{editingId ? t('works.editTitle') : t('works.addTitle')}</h2>
+            <h2 id="mm-dialog-25" className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">{editingId ? t('works.editTitle') : t('works.addTitle')}</h2>
             <form onSubmit={handleAdd} className="space-y-4">
               <div className="grid grid-cols-2 gap-2">
                 {([
@@ -416,8 +416,8 @@ export default function WorksPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.profile')}</label>
-                  <select value={form.profile} onChange={e => setForm({ ...form, profile: e.target.value, workType: '', crop: '', areaValue: '' })}
+                  <label htmlFor="mm-t-works-profile" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.profile')}</label>
+                  <select id="mm-t-works-profile" value={form.profile} onChange={e => setForm({ ...form, profile: e.target.value, workType: '', crop: '', areaValue: '' })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm">
                     {orderedProfiles.map(p => (
                       <option key={p.value} value={p.value}>{p.icon} {t(`works.profile.${p.value}`)}</option>
@@ -469,20 +469,20 @@ export default function WorksPage() {
               {isFarmProfile && (
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.crop')}</label>
-                    <input value={form.crop} onChange={e => setForm({ ...form, crop: e.target.value })}
+                    <label htmlFor="mm-t-works-crop" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.crop')}</label>
+                    <input id="mm-t-works-crop" value={form.crop} onChange={e => setForm({ ...form, crop: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" placeholder={t('works.cropPlaceholder')} />
                   </div>
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.season')}</label>
-                    <select value={form.season} onChange={e => setForm({ ...form, season: e.target.value })}
+                    <label htmlFor="mm-t-works-season" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.season')}</label>
+                    <select id="mm-t-works-season" value={form.season} onChange={e => setForm({ ...form, season: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm">
                       {SEASONS.map(s => <option key={s} value={s}>{t(`works.season.${s}`)}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.year')}</label>
-                    <input type="number" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}
+                    <label htmlFor="mm-t-works-year" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.year')}</label>
+                    <input id="mm-t-works-year" type="number" value={form.year} onChange={e => setForm({ ...form, year: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" />
                   </div>
                 </div>
@@ -542,8 +542,8 @@ export default function WorksPage() {
                 </div>
                 {partnershipsList.length > 0 && (
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.partnership')}</label>
-                    <select value={form.partnershipId} onChange={e => setForm({ ...form, partnershipId: e.target.value })}
+                    <label htmlFor="mm-t-works-partnership" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.partnership')}</label>
+                    <select id="mm-t-works-partnership" value={form.partnershipId} onChange={e => setForm({ ...form, partnershipId: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm">
                       <option value="">{t('works.noPartnership')}</option>
                       {partnershipsList.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
@@ -553,20 +553,20 @@ export default function WorksPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.agreedAmount')}</label>
-                  <input required type="number" min="0" step="0.01" value={form.agreedAmount} onChange={e => setForm({ ...form, agreedAmount: e.target.value })}
+                  <label htmlFor="mm-t-works-agreedamount" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.agreedAmount')}</label>
+                  <input id="mm-t-works-agreedamount" required type="number" min="0" step="0.01" value={form.agreedAmount} onChange={e => setForm({ ...form, agreedAmount: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="₹ 0" />
                 </div>
                 {isFarmProfile && (
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.area')}</label>
-                    <input type="number" min="0" step="0.01" value={form.areaValue} onChange={e => setForm({ ...form, areaValue: e.target.value })}
+                    <label htmlFor="mm-t-works-area" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.area')}</label>
+                    <input id="mm-t-works-area" type="number" min="0" step="0.01" value={form.areaValue} onChange={e => setForm({ ...form, areaValue: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" placeholder="0" />
                   </div>
                   <div>
-                    <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">&nbsp;</label>
-                    <select value={form.areaUnit} onChange={e => setForm({ ...form, areaUnit: e.target.value })}
+                    <label htmlFor="mm-nbsp" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">&nbsp;</label>
+                    <select id="mm-nbsp" value={form.areaUnit} onChange={e => setForm({ ...form, areaUnit: e.target.value })}
                       className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm">
                       {AREA_UNITS.map(u => <option key={u} value={u}>{t(`works.unit.${u}`)}</option>)}
                     </select>
@@ -576,23 +576,23 @@ export default function WorksPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.startDate')}</label>
-                  <input required type="date" max={todayStr()} value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })}
+                  <label htmlFor="mm-t-works-startdate" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.startDate')}</label>
+                  <input id="mm-t-works-startdate" required type="date" max={todayStr()} value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" />
                 </div>
                 <div>
-                  <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.endDate')}</label>
-                  <input type="date" min={form.startDate} value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })}
+                  <label htmlFor="mm-t-works-enddate" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.endDate')}</label>
+                  <input id="mm-t-works-enddate" type="date" min={form.startDate} value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" />
                 </div>
               </div>
               <div>
-                <label className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.notes')}</label>
-                <input value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
+                <label htmlFor="mm-t-works-notes" className="text-[11px] uppercase tracking-wider font-semibold text-slate-500 dark:text-slate-400 block mb-1">{t('works.notes')}</label>
+                <input id="mm-t-works-notes" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand text-sm" placeholder={t('works.notesPlaceholder')} />
               </div>
               <div className="flex items-center justify-end gap-2 pt-2">
-                <Button variant="ghost" size="sm" onClick={() => { setShowAddModal(false); setEditingId(null); setForm(emptyForm); resetFieldStates(); }}>{t('common.cancel')}</Button>
+                <Button type="button" variant="ghost" size="sm" onClick={() => { setShowAddModal(false); setEditingId(null); setForm(emptyForm); resetFieldStates(); }}>{t('common.cancel')}</Button>
                 <Button type="submit" size="sm">{editingId ? t('common.save') : t('works.create')}</Button>
               </div>
             </form>
@@ -605,26 +605,26 @@ export default function WorksPage() {
         const w = works.find(x => x.id === payWorkId);
         if (!w) return null;
         return (
-          <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
+          <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-26" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-4 overflow-y-auto">
             <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-md w-full p-6 shadow-2xl my-4">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">{t('works.recordPayment')}</h2>
+              <h2 id="mm-dialog-26" className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">{t('works.recordPayment')}</h2>
               <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{w.crop ? `${w.crop} · ` : ''}{w.workType} · {t('works.pendingShort')} {formatCurrency(workPendingAmount(w))}</p>
               <form onSubmit={handlePay} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('works.amountLabel')}</label>
-                    <input required type="number" min="0" step="0.01" value={payForm.amount} onChange={e => setPayForm({ ...payForm, amount: e.target.value })}
+                    <label htmlFor="mm-t-works-amountlabel" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('works.amountLabel')}</label>
+                    <input id="mm-t-works-amountlabel" required type="number" min="0" step="0.01" value={payForm.amount} onChange={e => setPayForm({ ...payForm, amount: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder="₹ 0" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('works.dateLabel')}</label>
-                    <input required type="date" max={todayStr()} value={payForm.date} onChange={e => setPayForm({ ...payForm, date: e.target.value })}
+                    <label htmlFor="mm-t-works-datelabel" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('works.dateLabel')}</label>
+                    <input id="mm-t-works-datelabel" required type="date" max={todayStr()} value={payForm.date} onChange={e => setPayForm({ ...payForm, date: e.target.value })}
                       className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('works.noteLabel')}</label>
-                  <input value={payForm.note} onChange={e => setPayForm({ ...payForm, note: e.target.value })}
+                  <label htmlFor="mm-t-works-notelabel" className="text-sm font-medium text-slate-700 dark:text-slate-300 block">{t('works.noteLabel')}</label>
+                  <input id="mm-t-works-notelabel" value={payForm.note} onChange={e => setPayForm({ ...payForm, note: e.target.value })}
                     className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-brand-muted outline-none focus:ring-2 focus:ring-brand" placeholder={t('works.notePlaceholder')} />
                 </div>
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -633,7 +633,7 @@ export default function WorksPage() {
                   <span className="text-sm text-slate-600 dark:text-slate-400">{t('works.alsoLedger')}</span>
                 </label>
                 <div className="flex items-center justify-end gap-2 pt-2">
-                  <Button variant="ghost" size="sm" onClick={() => { setPayWorkId(null); setPayForm({ amount: '', date: todayStr(), note: '', alsoLedger: true }); }}>{t('common.cancel')}</Button>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => { setPayWorkId(null); setPayForm({ amount: '', date: todayStr(), note: '', alsoLedger: true }); }}>{t('common.cancel')}</Button>
                   <Button type="submit" size="sm">{t('works.savePayment')}</Button>
                 </div>
               </form>
@@ -644,10 +644,10 @@ export default function WorksPage() {
 
       {/* Payment History Modal */}
       {historyId && historyWork && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-27" className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-[#2A2522] w-full max-w-sm rounded-2xl max-h-[80vh] flex flex-col overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 dark:border-brand-muted">
-              <h2 className="font-semibold text-slate-900 dark:text-slate-100 truncate">{historyWork.crop ? `${historyWork.crop} · ` : ''}{historyWork.workType}</h2>
+              <h2 id="mm-dialog-27" className="font-semibold text-slate-900 dark:text-slate-100 truncate">{historyWork.crop ? `${historyWork.crop} · ` : ''}{historyWork.workType}</h2>
               <button onClick={() => setHistoryId(null)} className="p-1 text-slate-400"><X className="h-5 w-5" /></button>
             </div>
             <div className="flex items-center gap-4 px-4 py-3 bg-slate-50 dark:bg-brand-muted/20 text-sm border-b border-slate-100 dark:border-brand-muted">
@@ -677,15 +677,15 @@ export default function WorksPage() {
 
       {/* Create Party Modal */}
       {showCreateParty && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-[60] p-4 overflow-y-auto">
+        <div role="dialog" aria-modal="true" aria-labelledby="mm-dialog-28" className="fixed inset-0 bg-black/50 dark:bg-black/70 backdrop-blur-sm flex items-start sm:items-center justify-center z-[60] p-4 overflow-y-auto">
           <div className="bg-white dark:bg-[#2A2522] rounded-2xl max-w-lg w-full p-6 shadow-2xl my-4" onClick={e => e.stopPropagation()}>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">New Party</h2>
+            <h2 id="mm-dialog-28" className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-1">New Party</h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Creating "<span className="font-medium text-slate-700 dark:text-slate-300">{showCreateParty}</span>"</p>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Group</label>
-                  <select value={createPartyForm.group} onChange={e => { const g = e.target.value as PartyGroup; setCreatePartyForm({ ...createPartyForm, group: g, type: PARTY_TYPES_BY_GROUP[g]?.[0]?.value || 'other' }); }}
+                  <label htmlFor="mm-group" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Group</label>
+                  <select id="mm-group" value={createPartyForm.group} onChange={e => { const g = e.target.value as PartyGroup; setCreatePartyForm({ ...createPartyForm, group: g, type: PARTY_TYPES_BY_GROUP[g]?.[0]?.value || 'other' }); }}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted text-sm outline-none focus:ring-2 focus:ring-brand">
                     {PARTY_GROUPS.map(g => (
                       <option key={g.value} value={g.value}>{g.label}</option>
@@ -693,8 +693,8 @@ export default function WorksPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Type</label>
-                  <select value={createPartyForm.type} onChange={e => setCreatePartyForm({ ...createPartyForm, type: e.target.value })}
+                  <label htmlFor="mm-type" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Type</label>
+                  <select id="mm-type" value={createPartyForm.type} onChange={e => setCreatePartyForm({ ...createPartyForm, type: e.target.value })}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted text-sm outline-none focus:ring-2 focus:ring-brand">
                     {(PARTY_TYPES_BY_GROUP[createPartyForm.group] || PARTY_TYPES_BY_GROUP.personal).map(pt => (
                       <option key={pt.value} value={pt.value}>{pt.label}</option>
@@ -703,8 +703,8 @@ export default function WorksPage() {
                 </div>
               </div>
               <div>
-                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Description (optional)</label>
-                <input value={createPartyForm.description} onChange={e => setCreatePartyForm({ ...createPartyForm, description: e.target.value })}
+                <label htmlFor="mm-description-optional" className="text-sm font-medium text-slate-700 dark:text-slate-300 block mb-1">Description (optional)</label>
+                <input id="mm-description-optional" value={createPartyForm.description} onChange={e => setCreatePartyForm({ ...createPartyForm, description: e.target.value })}
                   className="w-full px-3 py-2 rounded-lg border border-slate-200 dark:border-brand-muted text-sm outline-none focus:ring-2 focus:ring-brand" placeholder="Optional notes..." />
               </div>
               <div className="flex justify-end gap-2 pt-2">

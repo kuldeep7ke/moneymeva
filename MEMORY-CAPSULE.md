@@ -258,7 +258,7 @@ Broadcast pills + banner modals are **remote-config**: JSON hosted on jsonbin.io
 - **jsonbin response shape**: `{ record: <actual JSON>, metadata: {...} }` — components unwrap via `res?.record ?? res`
 - **Broadcast pill** (`BroadcastBanner.tsx`): floating pill top-center over content — wrapper `fixed left-1/2 md:left-[calc(50%+8rem)] -translate-x-1/2 z-[9998]`, stacked via inline `style={{top: ${8+i*44}px}}`; **pill has NO positioning of its own**, only swipe-to-dismiss `transform: translateX(dragX)` (Tailwind v4 sets the independent CSS `translate` property, so class + inline transform ADD). Solid color-coded bg (info=blue-600, warning=amber-500, success=green-600, error=red-600); optional `link`; dismiss by X or swipe-left ≥70px; per-ID dismissal in localStorage `mm_dismissed_broadcasts`; `pinned: true` = no dismiss; fetched list cached at module level (`broadcastCache`)
 - **Banner modal** (`BannerModal.tsx`): full-screen overlay `fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm`, centered card, optional image (max-h-64) + href; **never paints while deciding** — during fetch the modal returns `null`, so an absent/expired/bannerless bin shows NO loading flash on hard reload; a confirmed in-window banner mounts directly, with a skeleton card until content is ready; countdown (7s) starts only after full display (waits for image `onLoad`/`onError` with cached-image `complete` check); shows **once per app load** via module flag `bannerShownThisLoad`; NO localStorage persistence; scheduling via inclusive local-calendar-day windows through shared `isWithinPeriod(startDate?, endDate?)` in `utils.ts`
-- Local `public/broadcast.json`/`public/banner.json` are dead fallbacks only
+- No bundled fallback data: `public/broadcast.json`/`public/banner.json` were deleted (v7.3.0.52) — nothing in `src/` ever fetched them, and their v7.1.2 content was expired placeholder
 - Full editing workflow: `docs/BROADCAST-GUIDE.md`; Developer Zone → Remote Announcements tests BOTH proxy and jsonbin paths live (combined bin)
 
 ### 9. Works Module (कामे) — Pending Payments Register
@@ -383,8 +383,19 @@ All features store data in Supabase via the single `sync_docs` table (deliberate
 ## Theme System
 
 - CSS variables: `--brand`, `--brand-secondary`, `--brand-light`, `--brand-dark`, `--brand-muted`
+- Ink variables per preset: `--brand-on` (label sitting *on* a brand fill), `--brand-ink`
+  (brand colour used *as* text, per light/dark), `--brand-ink-light` (same ink for light-only islands)
 - 3 brands: Orange (default), Royal Blue, Emerald Green
 - Dark mode via `.dark` class on `<html>`, persisted in `mm_theme`
+- `src/app/globals.css` carries WCAG floors (`@layer utilities`) that retone low-contrast
+  utilities, dark-mode counterparts for unpaired classes, and a `brand-muted` strip ink;
+  subtrees that stay light in every theme are marked `.mm-surface-light` (landing page).
+  The public pages' `from-brand-light → to-brand-secondary` wash and its dark
+  `dark:to-brand-muted` end have their own floors, as does `text-brand` inside that wash.
+- Two rules for brand-filled surfaces, both learned from measurement:
+  a gradient that carries a label mixes **preset colours only** (`from-brand to-brand-hover`,
+  never `to-orange-600`), and a label on a brand fill gets **no `opacity-*`** — the ink token
+  (`--brand-on`) is what makes it readable, and alpha throws that away.
 
 ---
 
@@ -494,6 +505,7 @@ Launchers: `start.bat` / `start.sh` (production on :3000), `start-dev.bat` / `st
 ## What Changed Recently
 
 ### v7.3.x — now
+- **Full-app verification pass** (v7.3.0.51–.68) — every route driven in a headless browser and measured: WCAG AA on 2,179 light-mode text nodes and per-brand-preset dark sweeps, 0 failures; in-form Cancel buttons stopped submitting; CSV import, adjustments validation, developer-zone PIN gate, Supabase client caching, shared legal-page content, dead banner/broadcast fixtures removed; `docs/File-Map.md` rewritten
 - **Docs/maintenance pass** (v7.3.0.39+) — stale in-app copy fixed (Settings sync panel no longer references email/password cloud accounts), dead `signUpUser` removed; memory capsules merged into this single root file
 - **Partnership Type field** — 11-option kind picker; legacy docs without `kind` default to Farm
 - **Accrual credit model** — credit counts at record time; auto-linked payment-pending Adjustments, FIFO settlement
@@ -530,7 +542,79 @@ Launchers: `start.bat` / `start.sh` (production on :3000), `start-dev.bat` / `st
 
 ---
 
-## Deep Change Log (v7.3.0.27 → v7.1.1.26)
+## Deep Change Log (v7.3.0.76 → v7.1.1.26)
+
+### v7.3.0.69–.76 (2026-11-26) — Painted gradients measured, pastel washes floored, harness corrected
+- **Why** — the previous entry's own caveat ("gradient and image surfaces are excluded") covered
+  the app's most-used header surface. Gradient heads and stat cards carry white labels over
+  `lab()`/`oklab()` stops, so they were the last place a real failure could hide.
+- **How it was measured this time** — `background-image` is decomposed into its colour stops, each
+  stop sampled through a 1×1 canvas (that is what resolves `lab()`, `oklab()` and `/alpha` forms
+  exactly), and every translucent stop **composited over the surface behind it** before the ratio
+  is taken; the worst stop of a multi-stop gradient scores the element. Ancestor `opacity` flattens
+  both ink and surface toward the page colour, and `.reveal` subtrees are forced visible so the
+  IntersectionObserver cannot hide content from an off-screen iframe. 96 loads, 26 routes,
+  light + dark × orange/blue/green, 8,056 text leaves.
+- **Loading a route is not driving it** — the sweep was followed by the surfaces a click reaches:
+  What's-New (queued 5s after settle, so anything measured sooner missed it), the forgot-password
+  dialog, the Add-transaction modal, and the Developer zone past its "I Understand, Continue"
+  gate. The gate had been hiding the whole page — 4 leaves measured where 141 exist — and two
+  chips behind it failed at 4.34:1 (`text-red-600` on a red-100 panel), a pairing no load-only
+  sweep can see. Popup timing is why: `INITIAL_DELAY_MS = 5000` in `src/lib/popup-queue.ts`.
+- **What it caught** — white captions at 3.3–4.4:1 on `amber/red/green/sky` gradient heads;
+  `from-brand to-orange-600` (preset + fixed stop) in the PIN guide; `opacity-90` labels that
+  measured 3.82:1 on the green preset only, which is why single-theme checking had passed them;
+  `text-orange-600/70` on the landing badge at 2.48:1; and the pastel wash, where muted slate text
+  sits on #FFCF9A rather than white.
+- **What turned out to be the harness, not the app** — 54 dark Settings "failures" were `/20`–`/30`
+  gradient stops treated as opaque; ~300 leaves were un-revealed `opacity: 0` subtrees; the
+  "Continue with Google" 1.46:1 reading was `transition-colors` sampled mid-flight (live value is
+  `slate-300`, 5.9:1); disabled controls are exempt under WCAG 1.4.3. Each was fixed in the
+  harness before its findings were accepted, and every remaining hit got a source change.
+- **Mechanism** — new floors in `src/app/globals.css` for the pastel wash (light: `slate-600` ink;
+  dark: `#A9B8CC` over `brand-muted`, which the blue/green presets tint), `text-brand` inside the
+  wash through `--brand-dark`, `hover:text-brand-secondary` through `--brand-ink`; gradient fills
+  retoned at the call sites listed in `docs/Changelog.md`.
+- **A rule worth keeping: anything rendered in `src/app/loading.tsx` is preloaded on every page.**
+  React hoists its `<img>` into `<link rel="preload" as="image">`, which the static export writes
+  into all 28 page heads. The fallback logo was `public/favicon.jpg` — 1000×1000, 292 KB shown at
+  64 px — so every route paid for it and Chrome warned that the preload was never used. It is
+  `public/favicon-256.jpg` (7.6 KB, same artwork) in the seven call sites now; the master stays in
+  `public/` as source. Check `curl -s …/dashboard/ | grep 'rel="preload"'` before trusting any
+  "the payload is fine" claim.
+
+### v7.3.0.51–.68 (2026-11-26) — Full-app verification pass (contrast, forms, gates)
+- **Why** — the audit asked for every feature and section to be tested before pushing, so the
+  app was driven in a headless browser against the static build instead of read in source.
+- **How it was measured** — each route loaded in an iframe, every leaf text node's colour was
+  converted through a canvas (CSS ships `lab()`/`oklch()`), composited over the first opaque
+  ancestor background *and* every ancestor `opacity`, then checked against AA (4.5:1, 3:1 for
+  ≥24px / ≥18.66px bold). Gradient and image surfaces are excluded — pixels cannot be sampled
+  reliably in this harness, so those pairings were reasoned about from tokens instead.
+- **What that caught that eyeballing could not** — dark mode measured 103 near-misses on the
+  blue/green presets only (the `brand-muted` strip is tinted with the preset colour), and the
+  landing page's intentionally light hero fell to 1.8–2.6:1 once the dark floors reached into it.
+  Two harness bugs also had to be fixed before trusting the numbers: toggling `.dark` after load
+  caught `transition-colors` mid-flight (871 false failures), and the background walk started at
+  `parentElement`, so an element's own `bg-*` class was ignored.
+- **Mechanism** — `--brand-on` / `--brand-ink` / `--brand-ink-light` per preset; `@layer utilities`
+  floors in `src/app/globals.css`; `.mm-surface-light` for subtrees that stay light in any theme.
+  Floors use `[class*="dark:text-"]`-style guards so a call site that already paired a `dark:`
+  value is left alone.
+- **The form bug behind the validation work** — `ui/Button` declares no default `type`, so every
+  Cancel button written inside a `<form>` was an implicit submit; 16 sites now say
+  `type="button"`. Adjustments switched its amount field to `aria-required` so the app's own
+  toast explains the range instead of the browser bubble preempting it.
+- **Also** — strict CSV import (`src/lib/csv-import.ts`), PIN gate on developer-zone wipes and PIN
+  disclosure, one cached Supabase client per credentials, shared legal-page content so public and
+  in-app copies cannot drift, `common.sessionLocked` in three dictionaries, dialog/toast ARIA
+  semantics, keyboard navigation in the language menu, dead `public/banner.json` +
+  `public/broadcast.json` deleted.
+- **Known nits left open** — a Cancel button keeps the form draft (pages that edit clear
+  `editingId`, so nothing is corrupted); the i18n provider paints `mr` before the saved language
+  hydrates (inherent to a static export — initialising from `localStorage` would throw a
+  hydration error); the decorative `|` separators sit at 2.0–2.3:1, exempt as non-essential
+  graphics under 1.4.11.
 
 ### v7.3.0.27 (2026-09-11) — Partnership Type Field (Non-Farm Partnerships)
 - Partnerships are no longer farm-only. Add/Edit modal opens with an 11-kind chip row (Farm, Livestock/Poultry, Business, Startup, Shop, Transport, Contractor, Freelance/Services, Investment/Trading, Rental/Property, Other).
