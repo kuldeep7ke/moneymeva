@@ -9,10 +9,11 @@
 
 ## In Progress
 
-- [ ] **Supabase publishable-key migration (v7.3.0.49)** — code, SQL, docs, Docker
-      and both workflows renamed to `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`; UI says
-      "Publishable key (`sb_publishable_…`)". Waiting on you: the GitHub secret, the
-      Cloudflare Pages var, the real key value, and the commit. Detail: `TASK-BOARD.md` §1, §3.
+- [ ] **Publishable-key follow-through (v7.3.0.50 shipped)** — the rename itself is
+      committed (`4fce3ac`) and live on GitHub Pages. Still waiting on you: the GitHub
+      Actions secret, the Cloudflare Pages var + rebuild, and the real
+      `sb_publishable_…` value (`.env.local` still holds the legacy `eyJ…` anon JWT).
+      Detail: `TASK-BOARD.md` §3.
 - [ ] **Docs/maintenance pass (v7.3.0.41)** — align all docs to the current state
       (link-only sync, 11 tables, Google OAuth = local profile, announcements
       proxy). Ref `MEMORY-CAPSULE.md` for facts; audit links/wikilinks; commit.
