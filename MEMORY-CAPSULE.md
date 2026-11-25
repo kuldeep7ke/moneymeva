@@ -489,6 +489,20 @@ Launchers: `start.bat` / `start.sh` (production on :3000), `start-dev.bat` / `st
 - `output: 'export'` — no server-side features
 - All pages must be `'use client'`
 - Images unoptimized
+- **GitHub Pages serves the extensionless form only.** The export writes `dashboard.html`; this host
+  maps `/dashboard/` to `dashboard/index.html`, which does not exist, so a trailing slash 404s — and
+  the 404 body is the app's own `404.html`, which carries the same `app-version` meta and then
+  redirects to the dashboard. So `curl …/dashboard/ | grep app-version` looks green and proves
+  nothing: check `%{http_code}` on the unslashed URL. In-app `<Link>` hrefs are slash-free, so
+  navigation is fine; only typed/shared URLs hit it.
+- **Reproducing CI's artifact needs CI's env.** `DEPLOY_TARGET=gh-pages` sets basePath `/moneymeva`,
+  which changes the module graph: a plain local build shares only 18 of the 21 chunk names the live
+  `/dashboard` references. With `DEPLOY_TARGET=gh-pages NEXT_PUBLIC_SUPABASE_URL= …_PUBLISHABLE_KEY=`
+  (CI has no secrets) all 21 match `cmp` byte-for-byte — that is the real "is what's live what's in
+  the repo?" test, and it beats grepping strings.
+- Whatever an `<img>` renders inside `src/app/loading.tsx` is hoisted by React into
+  `<link rel="preload" as="image">` in **every** exported page head. Keep that file's images tiny:
+  it was a 292 KB 1000×1000 logo shown at 64 px until v7.3.0.76.
 
 ### Runtime Config (env.ts)
 - `NEXT_PUBLIC_*` env vars ARE read since v7.2.0.8 (Supabase URL/key/SITE_URL overrides at build time); defaults are EMPTY (cloud-free repo). Supabase URL/key can also be set per-device in Settings → Sync
@@ -542,7 +556,23 @@ Launchers: `start.bat` / `start.sh` (production on :3000), `start-dev.bat` / `st
 
 ---
 
-## Deep Change Log (v7.3.0.76 → v7.1.1.26)
+## Deep Change Log (v7.3.0.77 → v7.1.1.26)
+
+### v7.3.0.77 (2026-11-26) — Redeployed; the deploy evidence was wrong, now it is byte-for-byte
+- **Why** — "push all, build and deploy" had nothing to push (master was already live), so the job
+  was a fresh `workflow_dispatch` deploy plus a real check of what it published.
+- **The check worth keeping** — build locally the way CI does
+  (`DEPLOY_TARGET=gh-pages NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY= npm run build`)
+  and `cmp` every chunk the live page references. gh-pages mode changes basePath, which changes the
+  module graph, so a normal local build only shares 18 of 21 chunk names and cannot be the reference.
+  Matched that way: 21/21 identical, 0 live chunks carrying the project ref.
+- **What was wrong before** — the live-version evidence grepped `…/dashboard/`. GitHub Pages serves
+  the extensionless `dashboard.html` for `/dashboard` and 404s the slashed form, and the 404 body is
+  the app's own `404.html` — same `app-version` meta, then a redirect to the dashboard. A grep on it
+  reads as confirmation while testing nothing. Assert `%{http_code}` on the unslashed URL instead;
+  `docs/TASK-BOARD.md` §5 does.
+- **Deliberately not decided here** — `trailingSlash: true` would make both forms work but rewrites
+  every public URL and 301s the current canonical one; that is an owner call, recorded in §4.
 
 ### v7.3.0.69–.76 (2026-11-26) — Painted gradients measured, pastel washes floored, harness corrected
 - **Why** — the previous entry's own caveat ("gradient and image surfaces are excluded") covered

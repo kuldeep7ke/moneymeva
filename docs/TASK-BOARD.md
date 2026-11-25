@@ -70,9 +70,23 @@ Related docs: [Active-Tasks.md](Active-Tasks.md) (product roadmap) · root `MEMO
 | The pass is one commit: `135520e` (59 files, +1,568/−1,135), pushed `d6883b8..135520e` fast-forward; working tree clean | `git status --short` → empty |
 | Staged content scanned before committing — no key values, no `.env.local`, no build output | `git grep --cached -E "sb_secret_\|eyJ…\.\|SERVICE_ROLE"` → 0 code hits (only prose in docs); `.gitignore:4,3` already cover `.env.local` and `out/` |
 | All three workflows green on this push's first run | CI `45699882962` (1m31s), Pages deploy `45699882885` (1m45s), Android APK `45699883151` (3m24s) |
-| Live Pages serves `v7.3.0.77` and the payload fix is in the artifact: preload is `/moneymeva/favicon-256.jpg`, 0 live pages reference `favicon.jpg`, the asset fetches 7,630 B | `curl -s …/moneymeva/dashboard/ \| grep 'rel="preload"'`; `curl -I …/favicon-256.jpg` |
+| Live Pages serves `v7.3.0.77` and the payload fix is in the artifact: preload is `/moneymeva/favicon-256.jpg`, 0 live pages reference `favicon.jpg`, the asset fetches 7,630 B | `curl -s …/moneymeva/dashboard \| grep 'rel="preload"'` — **no trailing slash**, see §2f: `/dashboard/` is a 404 on this host and its body carries the same `app-version` meta, so a grep on the slashed URL proves nothing |
 | The 6 chunks carrying "Publishable key" are live **byte-for-byte identical** to the local build (HTTP 200, `cmp` identical); the legacy anon-JWT placeholder and the stale release note appear in 0 live chunks | `for c in 1_-dfso6407kb …; do curl … \| cmp - out/_next/static/chunks/$c.js; done` |
 | VERSION drifted the expected way again: repo `7.3.0.76`, live `7.3.0.77` — CI's `prebuild` bumps and cannot commit back | `cat VERSION` vs the live `app-version` meta |
+
+## 2f. DONE — manual deploy, and the strongest artifact check yet (2026-11-26)
+
+Nothing was unpushed (`HEAD` == `origin/master` == `a136ad7`, tree clean), so this was a
+`workflow_dispatch` deploy of current master plus a real verification of what it published.
+
+| Item | Evidence |
+|---|---|
+| Fresh build + deploy of master, triggered manually | run `45701071595` — checkout, `npm ci`, `npm run build`, upload-pages-artifact, deploy-pages all ✓ |
+| **The deployed artifact is this repo's code, byte for byte**: all 21 chunks referenced by the live `/dashboard` match a local `DEPLOY_TARGET=gh-pages NEXT_PUBLIC_SUPABASE_URL= …_PUBLISHABLE_KEY= npm run build` | `cmp` per chunk → 21 identical / 0 differing / 0 absent. Matching requires CI's env: gh-pages mode sets basePath `/moneymeva`, which changes the module graph, so a plain local build shares only 18/21 names |
+| No owner config is baked into the public artifact | 0 live chunks contain the project ref; the 2 `supabase.co` strings are placeholder prose (`your-project.supabase.co` + its hi/मराठी localisations) |
+| All 26 routes serve 200 on the canonical extensionless URL | `curl -o /dev/null -w '%{http_code}' …/moneymeva/dashboard/settings` etc. |
+| **Trailing slashes 404 on GitHub Pages** — the export writes `dashboard.html`, and this host maps `/dashboard/` only to `dashboard/index.html`. `/dashboard/` → 404, served by the app's own `404.html`, which says so and redirects to the dashboard. Local static serving is stricter-free, which is why the sweep never saw it | `…/dashboard` 200 vs `…/dashboard/` 404; `out/` has no `dashboard/index.html`. In-app `<Link>` hrefs have no trailing slash, so navigation is unaffected |
+| Repo number realigned with live after the deploy | `VERSION` `7.3.0.76` → `7.3.0.77` (the value CI baked); committed with `[skip ci]` so it does not trigger another bump |
 
 ## 3. BLOCKED-ON-YOU — cannot be done from the repo
 
@@ -114,6 +128,7 @@ Docs vs reality:
       (`dashboard/developer`, `support`, `terms`, `privacy`) and the new
       `csv-import`/`legal` modules are all in it now (grep: 1/1/4/4/1/6 hits)
 - [ ] Offline story: `src/components/RegisterSW.tsx:7-14` and `public/sw.js` intentionally *unregister* the service worker and purge caches, while `README.md:337` promises "works fully offline" and `public/manifest.webmanifest` still offers install — reword the claim or add real caching
+- [ ] Trailing-slash URLs 404 on GitHub Pages (§2f): decide between `trailingSlash: true` in `next.config.ts` (export then writes `dashboard/index.html`, and `/dashboard` 301s to `/dashboard/`) or leaving the extensionless form as canonical and documenting it. Not urgent — in-app links are already slash-free — but it changes every public URL, so it is an owner call, and any link shared with a trailing slash today lands on a 404 screen first.
 - [ ] Two different logos ship side by side: the in-app mark (`public/favicon*.jpg` — dark disc, low-poly orange M, coins) and the PWA/app icon set (`public/icon-*.png`, `icon.svg`, generated from the ₹ tile by `scripts/generate-web-icons.mjs`). Both are wired — installed icon and loading screen never appear together, so nobody notices. Pick one identity or document why they differ.
 - [ ] Orphaned config nothing references: `netlify.toml`, `bookmarklet.txt` — confirm before deleting
 
@@ -147,12 +162,18 @@ grep -o '<link rel="preload" href="/favicon[^>]*>' out/dashboard.html   # → fa
 grep -rl 'href="/favicon.jpg"' out --include="*.html" | wc -l           # 0 → the 292 KB mark is no longer requested
 ls -l public/favicon.jpg public/favicon-256.jpg | awk '{print $5, $9}'  # 299310 source, 7630 shipped
 
-# what is actually deployed (§2b)
-gh run list --repo kuldeep7ke/moneymeva --limit 3   # CI 45699882962, Pages 45699882885, APK 45699883151 — all success (§2d)
-curl -s https://kuldeep7ke.github.io/moneymeva/dashboard/ | grep -o 'app-version" content="[^"]*"'   # v7.3.0.77
-#   a local build bakes the project URL, CI (no secret) cannot:
-grep -rl "supabase\.co" out --include="*.js" | wc -l    # 8 locally…
-for u in $(curl -s https://kuldeep7ke.github.io/moneymeva/dashboard/ | grep -oE '/moneymeva/_next/static/chunks/[^"]+\.js' | sort -u); do curl -s "https://kuldeep7ke.github.io$u"; done | grep -c "supabase\.co"   # …0 live
+# what is actually deployed (§2d, §2f) — NOTE the URLs have NO trailing slash: on GitHub Pages
+# /dashboard/ is a 404 whose body is the app's own 404.html, and that page carries the same
+# app-version meta, so a slashed grep looks green while proving nothing.
+gh run list --repo kuldeep7ke/moneymeva --limit 3   # CI 45699882962, Pages 45699882885, APK 45699883151 (§2d); dispatch 45701071595 (§2f)
+curl -s -o /dev/null -w '%{http_code}\n' https://kuldeep7ke.github.io/moneymeva/dashboard   # 200
+curl -s https://kuldeep7ke.github.io/moneymeva/dashboard | grep -o 'app-version" content="[^"]*"'   # v7.3.0.77
+# prove the artifact is this repo's code — CI's env matters, gh-pages mode rewrites the module graph:
+DEPLOY_TARGET=gh-pages NEXT_PUBLIC_SUPABASE_URL= NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY= npm run build
+curl -s https://kuldeep7ke.github.io/moneymeva/dashboard | grep -oE '/moneymeva/_next/static/chunks/[^"]+\.js' | sed 's|.*/||' | sort -u |
+  while read c; do cmp -s <(curl -s "https://kuldeep7ke.github.io/moneymeva/_next/static/chunks/$c") "out/_next/static/chunks/$c" && echo "ok $c" || echo "DIFF $c"; done   # 21 ok, 0 DIFF
+# nothing owner-side is baked: 0 live chunks contain the project ref, and the supabase.co hits are prose
+for u in $(curl -s https://kuldeep7ke.github.io/moneymeva/dashboard | grep -oE '/moneymeva/_next/static/chunks/[^"]+\.js' | sort -u); do curl -s "https://kuldeep7ke.github.io$u"; done | grep -c "orpgmbrycnmjwtalupce"   # 0
 curl -s https://moneymevaonline.pages.dev/ | grep -o 'app-version" content="[^"]*"'                   # v7.3.0.45 → Cloudflare not rebuilt
 ```
 

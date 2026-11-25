@@ -50,6 +50,13 @@
       sweep's console check found the loading-screen logo was a 292 KB 1000×1000 JPEG that React
       preloads into all 28 page heads; it is a 7.6 KB 256px copy now. See
       `docs/Changelog.md`.
+- [x] **Deployed and re-verified the evidence (v7.3.0.77, 2026-11-26)** — `workflow_dispatch`
+      build + deploy of master (run `45701071595`, green); all 21 chunks the live `/dashboard`
+      references are byte-for-byte identical to a local `DEPLOY_TARGET=gh-pages` build, and 0 live
+      chunks carry the project ref. Found and fixed two of our own checks: they grepped
+      `…/dashboard/`, which on GitHub Pages is a 404 whose body is the app's `404.html` (same
+      `app-version` meta) — so the "live version" claim had been reading an error page. Canonical
+      URLs are slash-free; `docs/TASK-BOARD.md` §5 now asserts `%{http_code}`.
 - [x] **Full-app verification pass (v7.3.0.51–.68, 2026-11-26)** — every route driven in a
       headless browser against the static build; WCAG AA measured per brand preset (light and
       dark), 0 failures at the end; in-form Cancel buttons stopped submitting forms; strict CSV
