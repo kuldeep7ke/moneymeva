@@ -63,20 +63,31 @@ Related docs: [Active-Tasks.md](Active-Tasks.md) (product roadmap) · root `MEMO
 | Rebuilt and re-derived after the changes | `npm run build` → 29 static pages, `VERSION` v7.3.0.76 baked into `out/index.html`; `npx tsc --noEmit` exit 0; `npm run lint` → 318 problems (244 errors / 74 warnings) — unchanged, no new debt |
 | The 292 KB logo every page was paying for | `public/favicon.jpg` (1000×1000) was rendered by `src/app/loading.tsx`, whose `<img>` React hoists into `<link rel="preload" as="image">` — present in all 28 exported page heads, and Chrome warned it was never used. Replaced at the 7 call sites by `public/favicon-256.jpg` (256×256, 7,630 B, same artwork, lanczos); master kept as source. `grep -rl 'href="/favicon.jpg"' out --include=*.html` → 0 |
 
+## 2d. DONE — pushed and deployed (2026-11-26)
+
+| Item | Evidence |
+|---|---|
+| The pass is one commit: `135520e` (59 files, +1,568/−1,135), pushed `d6883b8..135520e` fast-forward; working tree clean | `git status --short` → empty |
+| Staged content scanned before committing — no key values, no `.env.local`, no build output | `git grep --cached -E "sb_secret_\|eyJ…\.\|SERVICE_ROLE"` → 0 code hits (only prose in docs); `.gitignore:4,3` already cover `.env.local` and `out/` |
+| All three workflows green on this push's first run | CI `45699882962` (1m31s), Pages deploy `45699882885` (1m45s), Android APK `45699883151` (3m24s) |
+| Live Pages serves `v7.3.0.77` and the payload fix is in the artifact: preload is `/moneymeva/favicon-256.jpg`, 0 live pages reference `favicon.jpg`, the asset fetches 7,630 B | `curl -s …/moneymeva/dashboard/ \| grep 'rel="preload"'`; `curl -I …/favicon-256.jpg` |
+| The 6 chunks carrying "Publishable key" are live **byte-for-byte identical** to the local build (HTTP 200, `cmp` identical); the legacy anon-JWT placeholder and the stale release note appear in 0 live chunks | `for c in 1_-dfso6407kb …; do curl … \| cmp - out/_next/static/chunks/$c.js; done` |
+| VERSION drifted the expected way again: repo `7.3.0.76`, live `7.3.0.77` — CI's `prebuild` bumps and cannot commit back | `cat VERSION` vs the live `app-version` meta |
+
 ## 3. BLOCKED-ON-YOU — cannot be done from the repo
 
 - [!] **GitHub still has ZERO secrets configured.** `gh secret list` → empty, and the only environment (`github-pages`) has no secrets either. So `secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` resolves to an empty string and CI builds bake no cloud config. This was already true of `..._ANON_KEY` before the rename — the web/APK artifacts from Actions have been shipping cloud-free all along, and today's deploy is no exception: anyone connecting from the hosted site must paste URL + key in Settings themselves. Decide: create the secret, or state plainly in the docs that Actions never bakes keys (see §4, changelog claim).
-- [!] **Cloudflare Pages has not rebuilt**: still live at `v7.3.0.45` while GitHub Pages is `v7.3.0.50`. Its build is owner-side (dashboard credentials), so the push above did not update it. Trigger it, or confirm the connection.
+- [!] **Cloudflare Pages has not rebuilt**: still live at `v7.3.0.45` while GitHub Pages is `v7.3.0.77`. Its build is owner-side (dashboard credentials), so the push above did not update it. Trigger it, or confirm the connection.
 - [!] **Create the GitHub secret** `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` if you want baked sync (Settings → Secrets and variables → Actions). The old `…_ANON_KEY` name no longer exists anywhere in the repo, so a secret under the old name does nothing.
 - [!] **Same rename in Cloudflare Pages** build environment variables (dashboard-only; see `SELF-HOSTING.md:164,181`).
 - [!] **Mint the real publishable key** in Supabase → Project Settings → API Keys, then paste into `.env.local` and the CI secret. Verified 2026-11-25: `.env.local` **still holds the legacy `eyJ…` anon JWT** under the new variable name — works today, on Supabase's retirement path.
 - [!] `build-apk.yml` never passes `NEXT_PUBLIC_SITE_URL` (only URL + key), so APK OAuth redirect falls back to the default `pages.dev` origin. `.github/workflows/build-apk.yml:31-32`
-- [!] **VERSION now drifts the other way**: CI runs `npm run build`, whose `prebuild` bumped the number to `7.3.0.50` in the artifact but cannot commit it back, so the repo file (`7.3.0.49`) is now one behind what is live. Same root cause as the §4 policy item.
+- [!] **VERSION now drifts the other way**: CI runs `npm run build`, whose `prebuild` bumped the number to `7.3.0.77` in the artifact but cannot commit it back, so the repo file (`7.3.0.76`) is one behind what is live. It has repeated on every deploy since (`7.3.0.49`→`.50`, `7.3.0.76`→`.77`). Same root cause as the §4 policy item.
 
 ## 4. PENDING — recommended next work
 
 Deploy pipeline:
-- [ ] Decide the VERSION/CI policy: stop `prebuild` bumping in CI (or have CI commit it back), otherwise deployed builds and the repo number never line up — today's deploy proves it again (repo `7.3.0.49`, live `7.3.0.50`)
+- [ ] Decide the VERSION/CI policy: stop `prebuild` bumping in CI (or have CI commit it back), otherwise deployed builds and the repo number never line up — it has now happened twice (repo `7.3.0.49` vs live `7.3.0.50`, repo `7.3.0.76` vs live `7.3.0.77`)
 - [ ] `docs/Changelog.md:27` claims Actions bakes the Supabase URL/key "from repo secrets" — no such secrets exist; correct the claim or add the secrets (ledger is append-only, so fix forward in a new entry)
 - [ ] If baked sync is *not* wanted, make that explicit in `README.md` / `SELF-HOSTING.md` instead of leaving the workflows referencing secrets that resolve to empty strings
 
@@ -137,8 +148,8 @@ grep -rl 'href="/favicon.jpg"' out --include="*.html" | wc -l           # 0 → 
 ls -l public/favicon.jpg public/favicon-256.jpg | awk '{print $5, $9}'  # 299310 source, 7630 shipped
 
 # what is actually deployed (§2b)
-gh run list --repo kuldeep7ke/moneymeva --limit 3   # CI 45658520194, Pages 45658520178, APK 45658520206 — all success
-curl -s https://kuldeep7ke.github.io/moneymeva/dashboard/ | grep -o 'app-version" content="[^"]*"'   # v7.3.0.50
+gh run list --repo kuldeep7ke/moneymeva --limit 3   # CI 45699882962, Pages 45699882885, APK 45699883151 — all success (§2d)
+curl -s https://kuldeep7ke.github.io/moneymeva/dashboard/ | grep -o 'app-version" content="[^"]*"'   # v7.3.0.77
 #   a local build bakes the project URL, CI (no secret) cannot:
 grep -rl "supabase\.co" out --include="*.js" | wc -l    # 8 locally…
 for u in $(curl -s https://kuldeep7ke.github.io/moneymeva/dashboard/ | grep -oE '/moneymeva/_next/static/chunks/[^"]+\.js' | sort -u); do curl -s "https://kuldeep7ke.github.io$u"; done | grep -c "supabase\.co"   # …0 live
@@ -150,7 +161,18 @@ plus the click-reached surfaces — What's-New popup (shows 5s after settle; dis
 `mm_seen_release`), forgot-password dialog, Add-transaction modal, the Developer zone past its
 gate with its Start-Fresh modal and the PIN prompt, and the Settings credential labels.
 
-Still not testable from this machine: real cloud sync (Settings points at `127.0.0.1:9` with a
-sentinel key while local testing runs — see §3 for the key that is actually needed), the
-Capacitor/APK paths (native notifications, hardware back button), and remote announcement content,
-which comes from a bin this build cannot reach. Those three are the honest boundary of the pass.
+Still not testable from this machine: real cloud sync (the automation profile points at the live
+project URL, but no key is baked and none was pasted — see §3 for the key that is actually needed),
+the Capacitor/APK paths (native notifications, hardware back button), and remote announcement
+content, which comes from a bin this build cannot reach. Those three are the honest boundary of
+the pass.
+
+A fourth, narrower boundary: the browser sweep ran against the **local** static export. On the
+deployed site the same routes render, but `/dashboard/settings` there has no session for this
+origin and bounces to `/moneymeva/login`, so the live label evidence is the byte-for-byte chunk
+comparison in §2d rather than a rendered read. The automation profile's local storage was restored
+after the sweep — real project URL back, the temporary `BLOCKED_FOR_LOCAL_TESTING` sync-key
+sentinel removed (it had no backup to restore), PIN counter reset to 0, theme light / brand orange,
+session unchanged. Left behind deliberately, not deleted: the `sweeptest@mm.test` profile with its
+10 test PINs (`mm_pins` keeps them as plaintext 4-digit strings by design — `src/lib/pinStore.ts:13-30`)
+and `mm_seen_release`, which only decides whether What's-New opens once.
